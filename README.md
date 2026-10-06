@@ -6,9 +6,9 @@
 [![Odin](https://img.shields.io/badge/Odin-Systems%20Lang-1e66f5.svg?style=flat)](https://odin-lang.org/)
 [![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20%2B%20DDD-brightgreen.svg?style=flat)]()
 [![ANTLR](https://img.shields.io/badge/Parser-ANTLR%204.13.2-red.svg?style=flat)](https://www.antlr.org/)
-[![Tests](https://img.shields.io/badge/Tests-47%20passed%20(100%25)-success.svg?style=flat)]()
+[![Tests](https://img.shields.io/badge/Tests-59%20passed%20(100%25)-success.svg?style=flat)]()
 [![Code Style](https://img.shields.io/badge/Linter-Ruff%20%26%20Mypy%20Strict-black.svg?style=flat)]()
-[![Rules](https://img.shields.io/badge/Supported%20Rules-35%20(23%20GoF%20%2B%2010%20SOLID%2FPrinciples%20%2B%202%20Arch)-orange.svg?style=flat)]()
+[![Rules](https://img.shields.io/badge/Supported%20Rules-39%20(23%20GoF%20%2B%2010%20SOLID%20%2B%204%20Idioms%20%2B%202%20Arch)-orange.svg?style=flat)]()
 
 ---
 
@@ -20,7 +20,7 @@ The system strictly follows **Domain-Driven Design (DDD)** and **Hexagonal Archi
                     ┌────────────────────────────────────────────────────────┐
                     │                    Driving Adapters                    │
                     │                                                        │
-                    │   Typer + Rich CLI         /       Python SDK API      │
+                    │   Typer + Rich CLI (dpx)   /       Python SDK API      │
                     └───────────────────────────┬────────────────────────────┘
                                                 │
                                                 ▼
@@ -34,7 +34,7 @@ The system strictly follows **Domain-Driven Design (DDD)** and **Hexagonal Archi
                                       │    DOMAIN CORE    │
                                       │                   │
                                       │  CodeModel        │
-                                      │  35 AnalysisRules │
+                                      │  39 AnalysisRules │
                                       │  Confidence Model │
                                       │  Evidence Trail   │
                                       │  Dependency Graph │
@@ -62,82 +62,101 @@ The system strictly follows **Domain-Driven Design (DDD)** and **Hexagonal Archi
 
 ---
 
-## 📐 Supported Rules Catalog (35 Rules)
+## 📐 Supported Rules Catalog (39 Rules)
 
-### 1. SOLID & Clean Code Principles (10 Rules)
+### 1. Odin & Systems Idioms (4 Rules)
+| # | Idiom / Pattern | Category | Detection Strategy & Odin Idioms |
+|---|---|---|---|
+| 1 | **Type-Safe Bitmask** | Idiom | Detects type-safe `bit_set[Enum]` bitfields replacing fragile raw integer bitmasks (`<<`, `&`, `|`). |
+| 2 | **Scope Guard (Defer)** | Idiom | Identifies scoped resource cleanup via `defer cleanup()` and block expressions `defer { ... }` ensuring deterministic lifecycle release. |
+| 3 | **Result Tuple / Error Signaling** | Idiom | Detects zero-cost multiple return values `proc(...) -> (T, bool)` and explicit `#optional_ok` directives for robust error signaling without exceptions. |
+| 4 | **Procedure Overloading (Group)** | Idiom | Identifies compile-time procedure groups `proc{fn_a, fn_b}` providing ad-hoc polymorphic dispatch without runtime vtable overhead. |
+
+### 2. SOLID & Clean Code Principles (10 Rules)
 | # | Principle | Category | Detection Strategy & Odin Idioms |
 |---|---|---|---|
-| 1 | **Single Responsibility (SRP)** | Principle | Detects God Struct anti-patterns mixing disparate concerns (>10 methods, high field counts, combining DB + HTTP + business logic). |
-| 2 | **Open/Closed (OCP)** | Principle | Identifies fragile `instanceof` / `typeid` / `switch` cascades vs praises polymorphic interface extension points. |
-| 3 | **Liskov Substitution (LSP)** | Principle | Detects subtyping structs breaking parent contracts (e.g. `panic("unsupported")` or `UnsupportedOperationException`). |
-| 4 | **Interface Segregation (ISP)** | Principle | Flags Fat VTables/Interfaces (>8 procedure pointers) and praises fine-grained Role Interfaces (1-3 cohesive procedures). |
-| 5 | **Dependency Inversion (DIP)** | Principle | Verifies procedure pointer / vtable injection vs hardcoded low-level `new(...)` concrete instantiations. |
-| 6 | **Composition Over Inheritance** | Principle | Flags deep struct embedding chains (`using base: ...` depth $\ge$ 3) and recommends composition. |
-| 7 | **Law of Demeter (LoD)** | Principle | Detects train-wreck chained calls (`a.get_b().get_c().get_d().run()`) causing tight coupling. |
-| 8 | **High Cohesion & Low Coupling** | Principle | Evaluates package fan-out efferent coupling metrics to enforce modularity. |
-| 9 | **Keep It Simple, Stupid (KISS)** | Principle | Detects high cyclomatic complexity and procedures with long parameter lists ($\ge$ 6 parameters). |
-| 10 | **Don't Repeat Yourself (DRY)** | Principle | Detects identical and near-duplicate non-trivial procedure bodies across modules. |
+| 5 | **Single Responsibility (SRP)** | Principle | Detects God Struct anti-patterns mixing disparate concerns (>10 methods, high field counts, combining DB + HTTP + business logic). |
+| 6 | **Open/Closed (OCP)** | Principle | Identifies fragile `instanceof` / `typeid` / `switch` cascades vs praises polymorphic interface extension points. |
+| 7 | **Liskov Substitution (LSP)** | Principle | Detects subtyping structs breaking parent contracts (e.g. `panic("unsupported")` or `UnsupportedOperationException`). |
+| 8 | **Interface Segregation (ISP)** | Principle | Flags Fat VTables/Interfaces (>8 procedure pointers) and praises fine-grained Role Interfaces (1-3 cohesive procedures). |
+| 9 | **Dependency Inversion (DIP)** | Principle | Verifies procedure pointer / vtable injection and explicit allocator parameters (`allocator: mem.Allocator`) vs hardcoded low-level concrete instantiations. |
+| 10 | **Composition Over Inheritance** | Principle | Flags deep struct embedding chains (`using base: ...` depth $\ge$ 3) and recommends composition. |
+| 11 | **Law of Demeter (LoD)** | Principle | Detects train-wreck chained calls (`a.get_b().get_c().get_d().run()`) while ignoring string literals and fluent builders. |
+| 12 | **High Cohesion & Low Coupling** | Principle | Evaluates package fan-out efferent coupling metrics to enforce modularity. |
+| 13 | **Keep It Simple, Stupid (KISS)** | Principle | Detects high cyclomatic complexity and procedures with long parameter lists ($\ge$ 6 parameters). |
+| 14 | **Don't Repeat Yourself (DRY)** | Principle | Detects identical and near-duplicate non-trivial procedure bodies across modules. |
 
-### 2. Gang of Four (GoF) Patterns (23 Rules)
+### 3. Gang of Four (GoF) Patterns (23 Rules)
 | # | Pattern Type | Category | Detection Strategy & Odin Idioms |
 |---|---|---|---|
-| 11 | **Singleton** | Creational | Global pointer/struct (`instance: ^App_Config = nil`), `get_instance` accessor procedure. |
-| 12 | **Factory Method** | Creational | Factory creator procedures (`create_button`, `make_service`, `new_client`) returning initialized structs. |
-| 13 | **Abstract Factory** | Creational | Factory structs (`GUI_Factory`) declaring families of product creation procedure pointers. |
-| 14 | **Builder** | Creational | Builder struct with step procedures (`server_builder_with_host`) returning `^Builder` and terminal `build()`. |
-| 15 | **Prototype** | Creational | Clone procedures (`clone :: proc(self: ^Prototype) -> ^Prototype`) producing duplicate variants. |
-| 16 | **Adapter** | Structural | Wrapper struct holding an `adaptee` reference and exposing the target vtable/interface. |
-| 17 | **Decorator** | Structural | Struct embedding or wrapping an instance of the same interface type, augmenting behavior. |
-| 18 | **Facade** | Structural | Subsystem coordinator struct coordinating multiple subsystem dependencies (`Audio_System`, `Physics_System`). |
-| 19 | **Composite** | Structural | Component vtable struct implemented by Leaf elements and Composite container structs with `[dynamic]^Component`. |
-| 20 | **Bridge** | Structural | Abstraction struct holding an injected backend driver pointer (`driver: ^Database_Driver`). |
-| 21 | **Proxy** | Structural | Surrogate struct controlling access / caching / logging for a target struct pointer. |
-| 22 | **Flyweight** | Structural | Object pools with `cache: map[string]^Resource` sharing fine-grained immutable instances. |
-| 23 | **Observer** | Behavioral | Listener/subscriber mechanisms (`listeners: [dynamic]proc(...)`), subscription calls (`subscribe`), event dispatch. |
-| 24 | **Strategy** | Behavioral | Strategy vtable structs with 2+ interchangeable concrete implementations via `using base`. |
-| 25 | **Chain of Responsibility** | Behavioral | Handler pipelines with `next: ^Handler` delegation (`next.handle(...)`). |
-| 26 | **Template Method** | Behavioral | Algorithm skeleton procedure calling customizable procedure pointers/hooks in a struct. |
-| 27 | **Command** | Behavioral | Command struct with `execute` and `undo` procedure pointers. |
-| 28 | **State** | Behavioral | State machine struct holding current state procedure pointer or state union and transitioning contexts. |
-| 29 | **Iterator** | Behavioral | Custom iterator struct with `has_next :: proc` and `next :: proc`. |
-| 30 | **Mediator** | Behavioral | Centralized mediator / event broker struct (`Event_Broker`) decoupling components. |
-| 31 | **Memento** | Behavioral | State snapshot struct (`Memento`) with `save_state` and `restore_state` procedures. |
-| 32 | **Visitor** | Behavioral | Visitor struct with `visit_*` procedure pointers or type switch visitor procedures. |
-| 33 | **Interpreter** | Behavioral | Expression structs/unions with `interpret :: proc(...)`. |
+| 15 | **Singleton** | Creational | Global pointer/struct (`instance: ^App_Config = nil`), `get_instance` accessor procedure. |
+| 16 | **Factory Method** | Creational | Factory creator procedures (`create_button`, `make_service`, `new_client`) returning initialized structs. |
+| 17 | **Abstract Factory** | Creational | Factory structs (`GUI_Factory`) declaring families of product creation procedure pointers. |
+| 18 | **Builder** | Creational | Builder struct with step procedures (`server_builder_with_host`) returning `^Builder` and terminal `build()`. |
+| 19 | **Prototype** | Creational | Clone procedures (`clone :: proc(self: ^Prototype) -> ^Prototype`) producing duplicate variants. |
+| 20 | **Adapter** | Structural | Wrapper struct holding an `adaptee` reference and exposing the target vtable/interface or glue records. |
+| 21 | **Decorator** | Structural | Struct embedding or wrapping an instance of the same interface type, augmenting behavior. |
+| 22 | **Facade** | Structural | Subsystem coordinator struct or package coordinating multiple subsystem dependencies (`Audio_System`, `Physics_System`). |
+| 23 | **Composite** | Structural | Component vtable struct implemented by Leaf elements and Composite container structs with `[dynamic]^Component`. |
+| 24 | **Bridge** | Structural | Abstraction struct holding an injected backend driver pointer (`driver: ^Database_Driver`). |
+| 25 | **Proxy** | Structural | Surrogate struct controlling access / caching / logging for a target struct pointer. |
+| 26 | **Flyweight** | Structural | Object pools with `cache: map[string]^Resource` sharing fine-grained immutable instances. |
+| 27 | **Observer** | Behavioral | Listener/subscriber mechanisms (`listeners: [dynamic]proc(...)`), subscription calls (`subscribe`), event dispatch. |
+| 28 | **Strategy** | Behavioral | Strategy vtable structs with 2+ interchangeable concrete implementations via `using base`. |
+| 29 | **Chain of Responsibility** | Behavioral | Handler pipelines with `next: ^Handler` delegation (`next.handle(...)`). |
+| 30 | **Template Method** | Behavioral | Algorithm skeleton procedure calling customizable procedure pointers/hooks in a struct. |
+| 31 | **Command** | Behavioral | Command struct with `execute` and `undo` procedure pointers. |
+| 32 | **State** | Behavioral | State machine struct holding current state procedure pointer or state union and transitioning contexts. |
+| 33 | **Iterator** | Behavioral | Custom iterator struct with `has_next :: proc` and `next :: proc`. |
+| 34 | **Mediator** | Behavioral | Centralized mediator / event broker struct (`Event_Broker`) decoupling components. |
+| 35 | **Memento** | Behavioral | State snapshot struct (`Memento`) with `save_state` and `restore_state` procedures. |
+| 36 | **Visitor** | Behavioral | Visitor struct with `visit_*` procedure pointers or type switch visitor procedures. |
+| 37 | **Interpreter** | Behavioral | Expression structs/unions with `interpret :: proc(...)`. |
 
-### 3. Architectural Rules (2 Rules)
+### 4. Architectural Rules (2 Rules)
 | # | Pattern Type | Category | Detection Strategy |
 |---|---|---|---|
-| 34 | **Lifecycle Component** | Architectural | Deterministic component lifecycles (`start()`, `stop()`, `init()`, `destroy()`). |
-| 35 | **Circular Dependency** | Architectural | Package graph analysis detecting cyclic dependencies (`package a ➔ package b ➔ package a`). |
+| 38 | **Lifecycle Component** | Architectural | Deterministic component lifecycles (`start()`, `stop()`, `init()`, `destroy()`). |
+| 39 | **Circular Dependency** | Architectural | Package graph analysis detecting cyclic dependencies (`package a ➔ package b ➔ package a`). |
 
 ---
 
 ## 💻 CLI Usage Guide
 
+The tool provides the `dpx` command (along with aliases `dpx-odin` and `pattern-detector`):
+
 ```bash
 # 1. Scan an Odin project directory
-uv run pattern-detector scan path/to/odin/project
+uv run dpx scan path/to/odin/project
 
-# 2. Export to interactive color-coded HTML dashboard
-uv run pattern-detector scan path/to/odin/project --html reports/dashboard.html
+# 2. Export full multi-format report (JSON + Interactive HTML + Markdown)
+uv run dpx scan path/to/odin/project \
+  --json reports/report.json \
+  --html reports/dashboard.html \
+  --markdown reports/summary.md
+
+# 3. Open interactive color-coded HTML dashboard
 open reports/dashboard.html
 
-# 3. Export to JSON or Markdown summary
-uv run pattern-detector scan path/to/odin/project --json reports/report.json --markdown reports/summary.md
+# 4. Filter by minimum confidence threshold or specific pattern
+uv run dpx scan path/to/odin/project --min-confidence 0.70 --pattern strategy
 
-# 4. Filter by confidence threshold or pattern
-uv run pattern-detector scan path/to/odin/project --min-confidence 0.70 --pattern strategy
-
-# 5. View registered rules catalog (all 35 rules)
-uv run pattern-detector rules
+# 5. View registered rules catalog (all 39 rules)
+uv run dpx rules
 
 # 6. View system info & active parser
-uv run pattern-detector info
+uv run dpx info
 
 # 7. Run test suite
 uv run pytest -v
 ```
+
+### 📊 Interactive Dashboard Features
+
+- **Search & Filter:** Instant live filtering by pattern name, category, target element, or confidence level.
+- **Evidence Trail Modal:** Inspect individual heuristics, source line references, and Bayesian confidence contributions.
+- **📋 Copy for LLM:** Single-click copy of the structured Markdown report directly to clipboard, optimized as prompt context for LLMs (Claude, GPT, Gemini).
+- **Dark Mode & Responsive Design:** High-contrast, presentation-ready UI.
 
 ---
 
@@ -146,12 +165,12 @@ uv run pytest -v
 ```bash
 uv run pytest --cov=pattern_detector -v
 uv run ruff check .
-uv run mypy src/pattern_detector
+uv run mypy src/pattern_detector tests/
 ```
 
-* **Test Suite:** `47 / 47 PASSED` (100% pass rate).
+* **Test Suite:** `59 / 59 PASSED` (100% pass rate).
 * **Linter:** `ruff` (0 errors).
-* **Static Typing:** strict `mypy` compliant (0 errors across 66 source files).
+* **Static Typing:** strict `mypy` compliant (0 errors across 80 source files).
 
 ---
 
