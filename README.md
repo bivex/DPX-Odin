@@ -1,62 +1,76 @@
-<p align="center">
-  <h1 align="center">🛡️ DPX-Odin</h1>
-  <p align="center">
-    <b>High-Performance Static Architecture Analyzer & Design Pattern Detection Engine for Odin</b>
-  </p>
-  <p align="center">
-    <i>Powered by Hexagonal Architecture (Ports & Adapters), Domain-Driven Design (DDD), and ANTLR4 Grammar Parsing</i>
-  </p>
-  <p align="center">
-    <a href="#-key-features">Key Features</a> •
-    <a href="#-benchmarks">Benchmarks</a> •
-    <a href="#-quick-start">Quick Start</a> •
-    <a href="#-interactive-dashboard">Dashboard</a> •
-    <a href="#-architecture">Architecture</a> •
-    <a href="#-rules-catalog">Rules Catalog</a> •
-    <a href="#-dpx-family">DPX Family</a>
-  </p>
-  <p align="center">
-    <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11%2B-blue.svg?style=flat&logo=python" alt="Python Version" /></a>
-    <a href="https://odin-lang.org/"><img src="https://img.shields.io/badge/Odin-Systems%20Lang-1e66f5.svg?style=flat" alt="Odin Language" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/Architecture-Hexagonal%20%2B%20DDD-brightgreen.svg?style=flat" alt="Architecture" /></a>
-    <a href="https://www.antlr.org/"><img src="https://img.shields.io/badge/Parser-ANTLR%204.13.2-red.svg?style=flat" alt="ANTLR4" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/Tests-59%20passed%20(100%25)-success.svg?style=flat" alt="Tests" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/Linter-Ruff%20%26%20Mypy%20Strict-black.svg?style=flat" alt="Code Quality" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/Rules-39%20(23%20GoF%20%2B%2010%20SOLID%20%2B%204%20Idioms%20%2B%202%20Arch)-orange.svg?style=flat" alt="Rules" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat" alt="License" /></a>
-  </p>
-</p>
+# 🛡️ DPX-Odin: Architectural Analyzer & Pattern Radar for Odin
+
+> **Automated architectural auditing, code health verification, and design pattern detection for the Odin programming language.**
+
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg?style=flat&logo=python)](https://www.python.org/)
+[![Odin](https://img.shields.io/badge/Odin-Systems%20Lang-1e66f5.svg?style=flat)](https://odin-lang.org/)
+[![Architecture](https://img.shields.io/badge/Design-Hexagonal%20%2B%20DDD-brightgreen.svg?style=flat)]()
+[![Rules](https://img.shields.io/badge/Detection%20Rules-39%20Built--in-orange.svg?style=flat)]()
+[![Tests](https://img.shields.io/badge/Tests-59%20passed%20(100%25)-success.svg?style=flat)]()
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat)](LICENSE)
 
 ---
 
-> [!NOTE]
-> **DPX-Odin** is a next-generation static analysis engine tailored specifically to the semantics, idioms, and data-oriented nature of the **Odin programming language**. It detects GoF design patterns, engineering clean code violations, and native Odin idioms (`bit_set`, `defer`, procedure overloading, result tuples) with Bayesian confidence scoring and actionable evidence trails.
+## 🎯 Why DPX-Odin?
+
+Odin is a modern, data-oriented systems programming language designed for high performance, control, and joy. Because Odin intentionally omits traditional OOP classes and inheritance hierarchies, developers structure complex systems using:
+
+- **Structs with procedure pointers** (vtable interfaces)
+- **Subtyping via composition** (`using base: ...`)
+- **Tagged unions and pattern matching** (`union`, `switch in`)
+- **Custom memory allocators** (`allocator: mem.Allocator`)
+- **First-class language idioms** (`bit_set`, `defer`, `proc{...}`, result tuples)
+
+As Odin projects grow from single-file experiments into large-scale game engines, compilers, servers, and graphical applications, teams inevitably encounter **architectural debt**:
+
+- 🚨 **God Structs:** Massive structs accumulating dozens of procedures spanning OS glue, memory allocation, network I/O, and business logic.
+- 🚨 **Hidden Tight Coupling:** Package cycles, leaky abstractions, and "train-wreck" procedure chains that make refactoring dangerous.
+- 🚨 **Fragile Dispatch:** Brittle cascaded `switch` statements that break silently when new variants are added.
+- 🚨 **Missed Zero-Cost Idioms:** Re-implementing C-style raw integer bitmasks, manual error propagation, or missing `defer` cleanup scopes.
+
+**DPX-Odin solves this problem.** It inspects your entire Odin codebase, maps out its architectural relationships, detects intentional patterns, flags design principle violations, and produces actionable evidence trails with zero guesswork.
 
 ---
 
-## ⚡ Benchmarks
+## 💡 Practical Benefits
 
-Thanks to multi-process parallelization (`ProcessPoolExecutor`) and content-addressed SHA-256 AST caching, DPX-Odin delivers near-instant analysis times on iterative scans:
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   CORE VALUE PILLARS                                   │
+├──────────────────────┬──────────────────────┬───────────────────┬──────────────────────┤
+│  🔍 Architecture     │  🩺 Code Health &    │  🦀 Odin Idioms   │  🤖 LLM-Assisted     │
+│     Discovery        │     Debt Prevention  │     Verification  │     Refactoring      │
+├──────────────────────┼──────────────────────┼───────────────────┼──────────────────────┤
+│ Uncover intentional  │ Identify God Structs,│ Validate safe     │ Export structured    │
+│ patterns (Command,   │ cyclomatic monsters, │ bit_set flags,    │ architectural context│
+│ Strategy, Facade,    │ circular imports, and│ defer guards, and │ directly to Claude,  │
+│ Observer, State) in  │ tight coupling before│ allocator injection│ GPT, or Gemini for  │
+│ idiomatic Odin code. │ code becomes rigid.  │ idioms.           │ guided refactoring.  │
+└──────────────────────┴──────────────────────┴───────────────────┴──────────────────────┘
+```
 
-| Project | Files | Cold Scan (No Cache) | Warm Scan (Cached) | Speedup Factor |
-|:---|:---:|:---:|:---:|:---:|
-| [**`laytan/odin-http`**](https://github.com/laytan/odin-http) *(HTTP 1.1 Client/Server)* | 39 | **9.0s** *(was 27.8s)* | **0.25s** | **~110x 🚀** |
-| [**`karl-zylinski/karl2d`**](https://github.com/karl-zylinski/karl2d) *(2D Game Library)* | 99 | **27.6s** *(was 70.6s)* | **0.159s** | **~444x 🚀** |
-| **Test Suite Execution** | 59 tests | **2.39s** *(was 3.06s)* | **0.19s** | **~16x ⚡** |
+### 1. Reverse-Engineer Project Architecture in Seconds
+Understand how an unfamiliar Odin codebase is put together. DPX-Odin discovers:
+- Which subsystems are decoupled behind **Façades** or **Adapters**.
+- Where state machines, command pipelines, and strategy dispatches are concentrated.
+- How cross-file packages communicate and exchange dependencies.
 
-> [!TIP]
-> Repeated CLI scans reuse cached AST representations automatically. Only modified `.odin` files trigger grammar parsing, making DPX-Odin blazing fast for pre-commit hooks and CI/CD pipelines.
+### 2. Prevent Architectural Erosion in CI/CD
+Catch architectural drift before code reaches production:
+- Enforce the **Single Responsibility Principle** to keep core structs focused.
+- Detect **Cyclic Package Dependencies** that kill modularity and parallel compilation.
+- Enforce **Dependency Inversion** by requiring explicit allocator parameters rather than hardcoded global allocators.
 
----
+### 3. Supercharge AI Coding Assistants (LLM Refactoring)
+LLMs hallucinate when asked to refactor code without architectural context. DPX-Odin includes a **"Copy for LLM"** engine:
+- Summarizes the structural findings, evidence trails, and file locations in clean, token-efficient Markdown.
+- Feed the report directly into Claude, ChatGPT, or Gemini with prompts like: *"Refactor the identified KISS violation in `window_manager.odin` using the existing strategy pattern."*
 
-## ✨ Key Features
-
-- 🎯 **39 Comprehensive Rules:** 23 Gang of Four (GoF) patterns, 10 SOLID & Clean Code principles, 2 architectural structural checks, and 4 dedicated Odin systems idioms.
-- 🦀 **Native Odin Idioms:** First-class detection for `bit_set[Enum]` type-safe bitmasks, `defer` scope guards, `proc{...}` procedure groups, and `(T, bool)` / `#optional_ok` result tuples.
-- 🔬 **Bayesian Confidence & Evidence Trails:** Every detection produces a verifiable confidence score (from `0%` to `100%`) accompanied by an explicit multi-heuristic evidence trail.
-- 📊 **Multi-Format Exporters:** Export results directly to interactive HTML dashboards, machine-readable JSON schemas, and GitHub-Flavored Markdown summaries.
-- 📋 **Copy for LLM:** Single-click prompt export formatted specifically for Claude 3.7, GPT-4o, and Gemini 2.5 Pro code review workflows.
-- 🏛️ **Pure Hexagonal Architecture:** Strict separation between driving CLI adapters, application services, domain models, and driven outbound parsers/repositories.
+### 4. Interactive Visual Dashboards
+Export your codebase analysis into a standalone, presentation-ready HTML dashboard complete with:
+- Live search by pattern, category, and source file.
+- Detailed Evidence Trail cards explaining **why** a pattern or violation was flagged.
+- Bayesian confidence breakdown (`VERY_HIGH`, `HIGH`, `MEDIUM`, `LOW`).
 
 ---
 
@@ -64,42 +78,53 @@ Thanks to multi-process parallelization (`ProcessPoolExecutor`) and content-addr
 
 ### Installation
 
-Requires Python 3.11+. We recommend using [`uv`](https://github.com/astral-sh/uv) for zero-setup execution:
+Requires Python 3.11+. We recommend [`uv`](https://github.com/astral-sh/uv) for fast, zero-configuration execution:
 
 ```bash
 # Clone the repository
 git clone https://github.com/bivex/DPX-Odin.git
 cd DPX-Odin
 
-# Sync dependencies
+# Sync environment
 uv sync
 ```
 
-### Running Scans
+### Basic Audits
 
-Use `dpx` (or alias `dpx-odin` / `pattern-detector`):
+Analyze any Odin repository or folder with the `dpx` CLI:
 
 ```bash
-# 1. Quick terminal scan
-uv run dpx scan path/to/odin/project
+# 1. Run a quick terminal scan
+uv run dpx scan path/to/odin-project
 
-# 2. Export full multi-format bundle (JSON + Interactive HTML + Markdown)
-uv run dpx scan path/to/odin/project \
-  --json reports/report.json \
+# 2. Generate the full report bundle (HTML Dashboard + Markdown + JSON)
+uv run dpx scan path/to/odin-project \
   --html reports/dashboard.html \
-  --markdown reports/summary.md
+  --markdown reports/summary.md \
+  --json reports/report.json
 
-# 3. Filter by pattern type or confidence threshold
-uv run dpx scan path/to/odin/project --pattern command --min-confidence 0.80
-
-# 4. Inspect registered rules catalog
-uv run dpx rules
-
-# 5. Display engine and parser runtime information
-uv run dpx info
+# 3. Open the visual dashboard in your browser
+open reports/dashboard.html
 ```
 
-### CLI Terminal Output Preview
+### Targeted Filtering
+
+```bash
+# Filter by pattern name
+uv run dpx scan path/to/odin-project --pattern command
+
+# Only show high-confidence detections (confidence >= 80%)
+uv run dpx scan path/to/odin-project --min-confidence 0.80
+
+# List all 39 supported architectural rules
+uv run dpx rules
+```
+
+---
+
+## 🔎 Real-World Output Example
+
+When running on an Odin codebase (such as a network library or game engine), DPX-Odin produces an explicit, evidence-backed breakdown:
 
 ```text
 #1 COMMAND on command_protocol 'Operation'
@@ -108,31 +133,102 @@ uv run dpx info
 ├── 📝 Summary: Command pattern: protocol 'Operation' implemented by 11 command records
 └── 🔎 Evidence Trail (11 heuristics):
     ├── +50% (COMMAND_COMMAND_PROTOCOL) Protocol 'Operation' defines Command interface
-    ├── +30% (COMMAND_COMMAND_RECORD) Record 'Op_Accept' encapsulates executable command
-    ├── +30% (COMMAND_COMMAND_RECORD) Record 'Op_Connect' encapsulates executable command
-    └── ... and 9 more command records
+    ├── +30% (COMMAND_COMMAND_RECORD) Record 'Op_Accept' encapsulates executable command parameters
+    ├── +30% (COMMAND_COMMAND_RECORD) Record 'Op_Connect' encapsulates executable command parameters
+    ├── +30% (COMMAND_COMMAND_RECORD) Record 'Op_Close' encapsulates executable command parameters
+    └── ... and 8 more command records
 
-✔ Full JSON detection report exported to: reports/report.json
-✔ Interactive HTML dashboard exported to: reports/dashboard.html
-✔ Markdown report exported to: reports/summary.md
+#2 TYPE_SAFE_BITMASK on bit_set_definition 'IORing_Poll_Flags'
+├── 📍 Location: /odin-http/old_nbio/_io_uring/sys.odin:247:1-247:52
+├── 🎯 Confidence: 85% [VERY_HIGH]
+├── 📝 Summary: Type-Safe Bitmask: 'IORing_Poll_Flags' encapsulates bit flags in type-checked bit_set[IORing_Poll_Bits;u32]
+└── 🔎 Evidence Trail (2 heuristics):
+    ├── +70% (TYPE_SAFE_BITMASK_BIT_SET_TYPE_DECLARATION) Type is declared as bit_set enum
+    └── +25% (TYPE_SAFE_BITMASK_BIT_SET_TYPE_SAFETY) Replaces raw integer flag shifting
+
+#3 KISS on kiss_cyclomatic_complexity 'window_event_dispatcher'
+├── 📍 Location: /engine/window_events.odin:112:1-260:2
+├── 🎯 Confidence: 88% [VERY_HIGH]
+├── 📝 Summary: KISS Violation (High Complexity): Method has 24 control flow branches
+└── 🔎 Evidence Trail (2 heuristics):
+    ├── +70% (KISS_KISS_HIGH_CYCLOMATIC_COMPLEXITY) High branch complexity (24 points)
+    └── +35% (KISS_KISS_DECOMPOSITION_NEEDED) Needs decomposition into sub-handlers
 ```
 
 ---
 
-## 📊 Interactive Dashboard
+## 📐 Catalog of 39 Built-in Checks
 
-Generate an interactive, production-ready dashboard using `--html reports/dashboard.html`:
+DPX-Odin audits your code across four distinct architectural dimensions:
 
-- 🔍 **Live Search & Filter:** Instant real-time filtering by pattern name, category (`Creational`, `Structural`, `Behavioral`, `Principle`, `Idiom`), target element, and confidence level.
-- 🧬 **Evidence Trail Inspector:** Expandable inspection cards displaying exact source locations, heuristic weights, and rule codes.
-- 📋 **Copy for LLM Context:** Copies clean, token-efficient Markdown containing the entire scan summary directly to your clipboard for LLM-based refactoring sessions.
-- 🌙 **High-Contrast Dark Theme:** Optimized for developer readability and screenshots.
+### 1. Odin Systems Idioms (4 Rules)
+*Validate that your team leverages Odin's native, zero-cost language mechanisms:*
+
+| Rule | Category | What It Verifies |
+|---|:---:|---|
+| **Type-Safe Bitmask** | Idiom | Flags raw integer bit shifting (`1 << 3`, `&`, `\|`) and praises idiomatic `bit_set[Enum]` types that guarantee compile-time safety. |
+| **Scope Guard (`defer`)** | Idiom | Identifies scoped cleanup blocks (`defer cleanup()`, `defer { ... }`) ensuring deterministic resource and memory releases. |
+| **Result Tuple / Error Signaling** | Idiom | Validates explicit multiple-return error signatures `proc(...) -> (T, bool)` and `#optional_ok` directives for zero-cost error propagation without exceptions. |
+| **Procedure Overloading (`proc{}`)** | Idiom | Identifies compile-time procedure groups `proc{fn_int, fn_str}` providing zero-overhead ad-hoc polymorphic dispatch without vtable indirection. |
+
+### 2. SOLID & Clean Code Principles (10 Rules)
+*Identify technical debt, untestable modules, and maintainability bottlenecks:*
+
+| Principle | Category | What It Flags & Enforces |
+|---|:---:|---|
+| **Single Responsibility (SRP)** | Principle | Detects "God Structs" that combine database persistence, network protocols, and core domain logic in a single record. |
+| **Open/Closed (OCP)** | Principle | Identifies brittle, cascading type switches that require modifications across multiple files whenever a new variant is introduced. |
+| **Liskov Substitution (LSP)** | Principle | Detects subtyping structs that panic or stub out operations expected by consumers of the base struct. |
+| **Interface Segregation (ISP)** | Principle | Flags bloated vtables (>8 procedure pointers) in favor of focused, cohesive role interfaces. |
+| **Dependency Inversion (DIP)** | Principle | Verifies that procedures accept explicit `allocator: mem.Allocator` parameters or procedure pointers instead of relying on global state. |
+| **Composition Over Inheritance** | Principle | Flags excessive embedding chains (`using base: ...` depth $\ge$ 3) that create fragile hierarchies. |
+| **Law of Demeter (LoD)** | Principle | Detects tight-coupling chained method calls (`a.get_b().get_c().run()`) across module boundaries. |
+| **High Cohesion & Low Coupling** | Principle | Measures efferent package fan-out to detect overly coupled modules. |
+| **Keep It Simple, Stupid (KISS)** | Principle | Detects procedures with dangerous cyclomatic complexity ($\ge$ 10 branches) or parameter bloat ($\ge$ 6 parameters). |
+| **Don't Repeat Yourself (DRY)** | Principle | Flags non-trivial duplicate logic and identical procedure implementations across files. |
+
+### 3. Gang of Four (GoF) Patterns (23 Rules)
+*Map and document intentional architectural patterns:*
+
+| Pattern | Category | Odin Implementation Strategy |
+|---|:---:|---|
+| **Singleton** | Creational | Global struct pointers with dedicated accessor procedures (`get_instance`). |
+| **Factory Method** | Creational | Factory constructors (`create_*`, `make_*`, `new_*`) producing initialized records. |
+| **Abstract Factory** | Creational | Factory records declaring families of related product constructor pointers. |
+| **Builder** | Creational | Method-chained configuration records terminating in a `.build()` procedure. |
+| **Prototype** | Creational | Dedicated clone procedures (`clone :: proc(self: ^T) -> ^T`). |
+| **Adapter** | Structural | Wrapper records adapting alien OS/C subsystems into uniform project interfaces. |
+| **Decorator** | Structural | Structs augmenting existing vtables while conforming to the same interface contract. |
+| **Facade** | Structural | High-level coordinator records and namespaces simplifying multi-subsystem workflows. |
+| **Composite** | Structural | Tree structures where composite nodes manage collections of `[dynamic]^Component`. |
+| **Bridge** | Structural | Structs decoupling high-level abstractions from platform drivers (`driver: ^Render_Driver`). |
+| **Proxy** | Structural | Intermediary structs managing access control, lazy initialization, or caching. |
+| **Flyweight** | Structural | Resource caches (`map[string]^Resource`) sharing immutable instances. |
+| **Observer** | Behavioral | Listener arrays (`[dynamic]proc(...)`), event dispatchers, and subscription hooks. |
+| **Strategy** | Behavioral | Swappable algorithm vtables with multiple interchangeable concrete implementations. |
+| **Chain of Responsibility** | Behavioral | Request pipelines delegating to sequential `next: ^Handler` references. |
+| **Template Method** | Behavioral | Algorithm skeletons invoking customizable hook procedure pointers. |
+| **Command** | Behavioral | Action records or tagged unions encapsulating parameters with `execute`/`undo` methods. |
+| **State** | Behavioral | State machine records transitioning between explicit state union variants. |
+| **Iterator** | Behavioral | Custom traversal records exposing `has_next` and `next` procedures. |
+| **Mediator** | Behavioral | Centralized message brokers and event buses decoupling peer components. |
+| **Memento** | Behavioral | State capture and restore records (`save_state` / `restore_state`). |
+| **Visitor** | Behavioral | Double-dispatch operations traversing heterogeneous data structures. |
+| **Interpreter** | Behavioral | AST expression evaluators implementing `interpret :: proc(...)`. |
+
+### 4. Architectural System Integrity (2 Rules)
+*Enforce high-level component lifecycles and clean module boundaries:*
+
+| Rule | Category | What It Enforces |
+|---|:---:|---|
+| **Lifecycle Component** | Architectural | Verifies that stateful subsystems implement deterministic `init` and `destroy`/`shutdown` procedures. |
+| **Circular Dependency** | Architectural | Analyzes package import graphs to detect forbidden circular dependencies (`A -> B -> A`). |
 
 ---
 
-## 🏛 Architecture
+## 🏛️ Engine Architecture
 
-The engine strictly enforces **Hexagonal Architecture (Ports & Adapters)** and **Domain-Driven Design (DDD)** principles:
+DPX-Odin is engineered following **Hexagonal Architecture (Ports & Adapters)** and **Domain-Driven Design (DDD)**:
 
 ```text
                     ┌────────────────────────────────────────────────────────┐
@@ -169,102 +265,25 @@ The engine strictly enforces **Hexagonal Architecture (Ports & Adapters)** and *
                     ┌───────────────────────────▼────────────────────────────┐
                     │                    Driven Adapters                     │
                     │                                                        │
-                    │   • ANTLR4 Odin Parser (OdinLexer.g4 / OdinParser.g4)  │
-                    │   • FileSystem Source Provider (.odin recursive)       │
+                    │   • ANTLR4 Odin Parser Adapter (Multi-Process AST)     │
+                    │   • Recursive FileSystem Source Provider               │
                     │   • Interactive HTML Dashboard Formatter & Repository  │
                     │   • GitHub-Flavored Markdown Formatter & Repository    │
-                    │   • JSON Result Repository                             │
+                    │   • Machine-Readable JSON Result Repository            │
                     │   • Rich Console Terminal Formatter                    │
                     └────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 📐 Rules Catalog
-
-<details open>
-<summary><b>1. Odin & Systems Idioms (4 Rules)</b></summary>
-<br>
-
-| # | Idiom | Category | Detection Strategy & Odin Semantics |
-|:---:|---|:---:|---|
-| 1 | **Type-Safe Bitmask** | Idiom | Identifies `bit_set[Enum]` bitfields replacing error-prone integer flag arithmetic (`<<`, `&`, `|`). |
-| 2 | **Scope Guard (Defer)** | Idiom | Identifies scoped cleanup expressions `defer cleanup()` and block scopes `defer { ... }` ensuring RAII-equivalent resource release. |
-| 3 | **Result Tuple / Error Signaling** | Idiom | Identifies zero-cost multiple return values `proc(...) -> (T, bool)` and explicit `#optional_ok` directives. |
-| 4 | **Procedure Overloading (Group)** | Idiom | Identifies compile-time procedure groups `proc{fn_a, fn_b}` providing ad-hoc dispatch without runtime vtable overhead. |
-
-</details>
-
-<details open>
-<summary><b>2. SOLID & Clean Code Principles (10 Rules)</b></summary>
-<br>
-
-| # | Principle | Category | Detection Strategy & Odin Semantics |
-|:---:|---|:---:|---|
-| 5 | **Single Responsibility (SRP)** | Principle | Detects God Struct anti-patterns mixing disparate domain concerns (database persistence + HTTP handling + logic). |
-| 6 | **Open/Closed (OCP)** | Principle | Identifies fragile `typeid` / `switch` cascades vs polymorphic extension points. |
-| 7 | **Liskov Substitution (LSP)** | Principle | Detects subtyping structs breaking parent contracts (e.g. `panic("unsupported")`). |
-| 8 | **Interface Segregation (ISP)** | Principle | Flags Fat VTables/Interfaces (>8 procedure pointers) and praises cohesive Role Interfaces (1-3 procedures). |
-| 9 | **Dependency Inversion (DIP)** | Principle | Verifies procedure pointer injection and allocator parameterization (`allocator: mem.Allocator`) vs hardcoded globals. |
-| 10 | **Composition Over Inheritance** | Principle | Flags deep struct embedding chains (`using base: ...` depth $\ge$ 3) and recommends explicit composition. |
-| 11 | **Law of Demeter (LoD)** | Principle | Detects train-wreck chained calls (`a.get_b().get_c().run()`) while ignoring string literals and fluent builders. |
-| 12 | **High Cohesion & Low Coupling** | Principle | Evaluates package fan-out efferent coupling metrics to enforce modularity. |
-| 13 | **Keep It Simple, Stupid (KISS)** | Principle | Detects procedures with high cyclomatic complexity and long parameter lists ($\ge$ 6 parameters). |
-| 14 | **Don't Repeat Yourself (DRY)** | Principle | Detects identical and near-duplicate non-trivial procedure bodies across modules. |
-
-</details>
-
-<details>
-<summary><b>3. Gang of Four (GoF) Patterns (23 Rules)</b></summary>
-<br>
-
-| # | Pattern Type | Category | Detection Strategy & Odin Semantics |
-|:---:|---|:---:|---|
-| 15 | **Singleton** | Creational | Global pointer/struct (`instance: ^App_Config = nil`), `get_instance` accessor procedure. |
-| 16 | **Factory Method** | Creational | Factory creator procedures (`create_*`, `make_*`, `new_*`) returning initialized structs. |
-| 17 | **Abstract Factory** | Creational | Factory structs declaring families of product creation procedure pointers. |
-| 18 | **Builder** | Creational | Step-by-step configuration struct returning `^Builder` and a terminal `.build()` operation. |
-| 19 | **Prototype** | Creational | Clone procedures (`clone :: proc(self: ^Prototype) -> ^Prototype`) producing duplicate variants. |
-| 20 | **Adapter** | Structural | Wrapper struct holding an `adaptee` reference and exposing a target vtable/interface or glue record. |
-| 21 | **Decorator** | Structural | Struct embedding or wrapping an instance of the same interface type, augmenting behavior. |
-| 22 | **Facade** | Structural | Subsystem coordinator struct or namespace coordinating multiple underlying subsystems. |
-| 23 | **Composite** | Structural | Component vtable implemented by Leaf elements and Composite containers holding `[dynamic]^Component`. |
-| 24 | **Bridge** | Structural | Abstraction struct holding an injected backend driver pointer (`driver: ^Database_Driver`). |
-| 25 | **Proxy** | Structural | Surrogate struct controlling access, caching, or logging for a target struct pointer. |
-| 26 | **Flyweight** | Structural | Object pools with `cache: map[string]^Resource` sharing fine-grained immutable instances. |
-| 27 | **Observer** | Behavioral | Listener mechanisms (`listeners: [dynamic]proc(...)`), explicit subscription procedures, event dispatch. |
-| 28 | **Strategy** | Behavioral | Strategy vtable structs with multiple interchangeable concrete implementations via `using base`. |
-| 29 | **Chain of Responsibility** | Behavioral | Handler pipelines with `next: ^Handler` delegation. |
-| 30 | **Template Method** | Behavioral | Algorithm skeleton procedure calling customizable procedure pointers/hooks in a struct. |
-| 31 | **Command** | Behavioral | Command struct / union with `execute` and `undo` procedure pointers. |
-| 32 | **State** | Behavioral | State machine struct holding state procedure pointers or state unions with transition contexts. |
-| 33 | **Iterator** | Behavioral | Custom iterator struct with `has_next :: proc` and `next :: proc`. |
-| 34 | **Mediator** | Behavioral | Centralized mediator / event broker struct decoupling multiple peers. |
-| 35 | **Memento** | Behavioral | State snapshot struct (`Memento`) with `save_state` and `restore_state` procedures. |
-| 36 | **Visitor** | Behavioral | Visitor struct with `visit_*` procedure pointers or type switch visitor procedures. |
-| 37 | **Interpreter** | Behavioral | Expression structs/unions with `interpret :: proc(...)`. |
-
-</details>
-
-<details>
-<summary><b>4. Architectural Rules (2 Rules)</b></summary>
-<br>
-
-| # | Pattern Type | Category | Detection Strategy |
-|:---:|---|:---:|---|
-| 38 | **Lifecycle Component** | Architectural | Stateful components managing deterministic lifecycles (`init`, `destroy`, `start`, `shutdown`). |
-| 39 | **Circular Dependency** | Architectural | Package graph analysis detecting cyclic import dependencies (`package a ➔ package b ➔ package a`). |
-
-</details>
+The domain core has **zero dependencies** on ANTLR, grammar tokens, file paths, or CLI libraries. It operates entirely on an agnostic, immutable `CodeModel` consisting of protocols, records, procedure signatures, and dependencies.
 
 ---
 
-## 🧪 Quality & Verification
+## 🧪 Quality & Test Suite
 
-Every rule, parser adapter, and exporter is covered by rigorous automated tests:
+The engine is built with strict typing and 100% automated test coverage across all rules, parser edge-cases, and false-positive guards:
 
 ```bash
-# Run unit & regression test suite
+# Run full test suite (59 tests)
 uv run pytest -v
 
 # Run linter
@@ -274,31 +293,22 @@ uv run ruff check .
 uv run mypy src/pattern_detector tests/
 ```
 
-- **Test Suite:** `59 / 59 PASSED` (100% pass rate in `0.19s`).
+- **Test Suite:** `59 / 59 PASSED` (100% pass rate).
 - **Linter:** `ruff` (0 errors).
-- **Static Typing:** `mypy` strict compliant (0 errors across 80 source files).
+- **Static Typing:** strict `mypy` compliant (0 errors across 80 source files).
 
 ---
 
-## 🌐 DPX Family
+## 🌐 The DPX Static Analysis Family
 
 DPX-Odin is part of the **DPX Static Analysis Family** covering 34 programming languages:
 
-| Language | Repository | Focus |
-|---|---|---|
-| **Odin** | [`bivex/DPX-Odin`](https://github.com/bivex/DPX-Odin) | Systems Architecture, Data-Oriented Design, Allocators, VTables |
-| **Rust** | [`bivex/DPX-Rust`](https://github.com/bivex/DPX-Rust) | Zero-Cost Abstractions, Borrow Checker, Traits |
-| **Go** | [`bivex/DPX-Go`](https://github.com/bivex/DPX-Go) | Goroutines, Channels, Composition, Interfaces |
-| **Zig** | [`bivex/DPX-Zig`](https://github.com/bivex/DPX-Zig) | Comptime, Manual Memory Allocators, C ABI |
-| **C++** | [`bivex/DPX-Cpp`](https://github.com/bivex/DPX-Cpp) | RAII, CRTP, Concepts, Modern C++20/23 |
-| **C** | [`bivex/DPX-C`](https://github.com/bivex/DPX-C) | Memory Safety, Struct VTables, Idiomatic C11/C23 |
-| **Python** | [`bivex/DPX-Py`](https://github.com/bivex/DPX-Py) | Metaprogramming, Protocols, Hexagonal DDD |
-| **TypeScript** | [`bivex/DPX-TypeScript`](https://github.com/bivex/DPX-TypeScript) | Generics, Conditional Types, Clean Architecture |
-| **C#** | [`bivex/DPX-CSharp`](https://github.com/bivex/DPX-CSharp) | .NET 9, Roslyn AST, Linq, Records |
-| **Java** | [`bivex/DPX-Java`](https://github.com/bivex/DPX-Java) | Enterprise Java, Spring Boot, JVM Invariants |
-| **Swift** | [`bivex/DPX-Swift`](https://github.com/bivex/DPX-Swift) | Protocol-Oriented Programming, Actors |
-| **Kotlin** | [`bivex/DPX-Kotlin`](https://github.com/bivex/DPX-Kotlin) | Coroutines, Multiplatform, Functional DSLs |
-| *... and 22 more* | | *Ada, Cairo, Clojure, Dart, Elixir, Erlang, Gleam, Haskell, Huff, Idris 2, Julia, Lua, Mojo, Move, OCaml, PHP, Prolog, Puppet, Ruby, Solidity, SQL, Yul* |
+| Ecosystem | Languages |
+|---|---|
+| **Systems & Native** | [Odin](https://github.com/bivex/DPX-Odin) • [Rust](https://github.com/bivex/DPX-Rust) • [Zig](https://github.com/bivex/DPX-Zig) • [C](https://github.com/bivex/DPX-C) • [C++](https://github.com/bivex/DPX-Cpp) • [Ada](https://github.com/bivex/DPX-Ada) • [Mojo](https://github.com/bivex/DPX-Mojo) |
+| **Backend & Enterprise** | [Go](https://github.com/bivex/DPX-Go) • [Java](https://github.com/bivex/DPX-Java) • [C#](https://github.com/bivex/DPX-CSharp) • [Python](https://github.com/bivex/DPX-Py) • [TypeScript](https://github.com/bivex/DPX-TypeScript) • [PHP](https://github.com/bivex/DPX-Php) • [Ruby](https://github.com/bivex/DPX-Ruby) |
+| **Mobile & Functional** | [Swift](https://github.com/bivex/DPX-Swift) • [Kotlin](https://github.com/bivex/DPX-Kotlin) • [Dart](https://github.com/bivex/DPX-Dart) • [Elixir](https://github.com/bivex/DPX-Elixir) • [Erlang](https://github.com/bivex/DPX-Erlang) • [Haskell](https://github.com/bivex/DPX-Haskell) • [Clojure](https://github.com/bivex/DPX) • [OCaml](https://github.com/bivex/DPX-OCaml) • [Gleam](https://github.com/bivex/DPX-Gleam) |
+| **Web3 & Domain-Specific** | [Solidity](https://github.com/bivex/DPX-Solidity) • [Cairo](https://github.com/bivex/DPX-Cairo) • [Move](https://github.com/bivex/DPX-Move) • [Yul](https://github.com/bivex/DPX-Yul) • [Huff](https://github.com/bivex/DPX-Huff) • [SQL](https://github.com/bivex/DPX-SQL) • [Prolog](https://github.com/bivex/DPX-Prolog) |
 
 ---
 
