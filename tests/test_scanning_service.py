@@ -12,7 +12,7 @@ def test_scanning_service_end_to_end_on_examples() -> None:
     container = create_container()
     scanner = container.get_scanner()
 
-    examples_dir = str(Path(__file__).parent.parent / "examples" / "java_samples")
+    examples_dir = str(Path(__file__).parent.parent / "examples" / "odin_samples")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         json_out = str(Path(tmpdir) / "report.json")
@@ -39,7 +39,7 @@ def test_scanning_service_filter_by_pattern_type() -> None:
     container = create_container()
     scanner = container.get_scanner()
 
-    examples_dir = str(Path(__file__).parent.parent / "examples" / "java_samples")
+    examples_dir = str(Path(__file__).parent.parent / "examples" / "odin_samples")
 
     options = ScanOptions(
         enabled_patterns=["strategy"],

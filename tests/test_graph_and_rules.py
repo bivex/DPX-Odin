@@ -1,39 +1,39 @@
-"""Tests for Java Package Dependency Graph and Circular Dependency Detection."""
+"""Tests for Odin Package Dependency Graph and Circular Dependency Detection."""
 
-from pattern_detector.adapters.outbound.antlr.java_parser_adapter import JavaAntlrParserAdapter
+from pattern_detector.adapters.outbound.antlr.odin_parser_adapter import OdinAntlrParserAdapter
 from pattern_detector.domain.rules.circular_dependency_rule import CircularDependencyRule
 from pattern_detector.domain.value_objects import PatternType
 
 
-def test_circular_dependency_detection_java() -> None:
+def test_circular_dependency_detection_odin() -> None:
     code_a = """
-    package com.example.alpha;
+    package alpha
 
-    import com.example.beta.BetaService;
+    import "beta"
 
-    public class AlphaService {
-        private BetaService beta;
+    Alpha_Service :: struct {
+        beta: ^beta.Beta_Service,
     }
     """
     code_b = """
-    package com.example.beta;
+    package beta
 
-    import com.example.alpha.AlphaService;
+    import "alpha"
 
-    public class BetaService {
-        private AlphaService alpha;
+    Beta_Service :: struct {
+        alpha: ^alpha.Alpha_Service,
     }
     """
 
-    adapter = JavaAntlrParserAdapter()
+    adapter = OdinAntlrParserAdapter()
     model = adapter.parse_sources({
-        "AlphaService.java": code_a,
-        "BetaService.java": code_b,
+        "alpha.odin": code_a,
+        "beta.odin": code_b,
     })
 
     cycles = model.find_circular_dependencies()
     assert len(cycles) == 1
-    assert set(cycles[0]) == {"com.example.alpha", "com.example.beta"}
+    assert set(cycles[0]) == {"alpha", "beta"}
 
     rule = CircularDependencyRule()
     detections = rule.detect(model)

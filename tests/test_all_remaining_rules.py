@@ -1,6 +1,6 @@
-"""Tests for design pattern rules on Java source code."""
+"""Tests for design pattern rules on Odin source code."""
 
-from pattern_detector.adapters.outbound.antlr.java_parser_adapter import JavaAntlrParserAdapter
+from pattern_detector.adapters.outbound.antlr.odin_parser_adapter import OdinAntlrParserAdapter
 from pattern_detector.domain.rules.abstract_factory_rule import AbstractFactoryRule
 from pattern_detector.domain.rules.bridge_rule import BridgePatternRule
 from pattern_detector.domain.rules.composite_rule import CompositePatternRule
@@ -9,112 +9,118 @@ from pattern_detector.domain.rules.mediator_rule import MediatorPatternRule
 from pattern_detector.domain.value_objects import PatternType
 
 
-def test_abstract_factory_rule_java() -> None:
+def test_abstract_factory_rule_odin() -> None:
     code = """
-    package com.example.factory;
+    package factory
 
-    public interface GUIFactory {
-        Button createButton();
-        Checkbox createCheckbox();
+    Button :: struct { render: proc() }
+    Checkbox :: struct { check: proc() }
+
+    GUI_Factory :: struct {
+        create_button: proc() -> ^Button,
+        create_checkbox: proc() -> ^Checkbox,
     }
 
-    public class WinFactory implements GUIFactory {
-        public Button createButton() { return new WinButton(); }
-        public Checkbox createCheckbox() { return new WinCheckbox(); }
+    Win_Factory :: struct {
+        using base: GUI_Factory,
     }
 
-    public class MacFactory implements GUIFactory {
-        public Button createButton() { return new MacButton(); }
-        public Checkbox createCheckbox() { return new MacCheckbox(); }
+    Mac_Factory :: struct {
+        using base: GUI_Factory,
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"GUIFactory.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"gui_factory.odin": code})
     detections = AbstractFactoryRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.ABSTRACT_FACTORY
-    assert detections[0].target_name == "GUIFactory"
+    assert detections[0].target_name == "GUI_Factory"
 
 
-def test_composite_rule_java() -> None:
+def test_composite_rule_odin() -> None:
     code = """
-    package com.example.composite;
+    package composite
 
-    import java.util.List;
-    import java.util.ArrayList;
-
-    public interface Graphic {
-        void draw();
+    Graphic :: struct {
+        draw: proc(),
     }
 
-    public class Dot implements Graphic {
-        public void draw() {}
+    Dot :: struct {
+        using base: Graphic,
     }
 
-    public class CompoundGraphic implements Graphic {
-        private List<Graphic> children = new ArrayList<>();
-        public void draw() {
-            for (Graphic g : children) { g.draw(); }
+    Compound_Graphic :: struct {
+        using base: Graphic,
+        children: [dynamic]^Graphic,
+    }
+
+    compound_graphic_draw :: proc(self: ^Compound_Graphic) {
+        for g in self.children {
+            if g != nil && g.draw != nil {
+                g.draw()
+            }
         }
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"Graphic.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"graphic.odin": code})
     detections = CompositePatternRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.COMPOSITE
     assert detections[0].target_name == "Graphic"
 
 
-def test_bridge_rule_java() -> None:
+def test_bridge_rule_odin() -> None:
     code = """
-    package com.example.bridge;
+    package bridge
 
-    public interface DatabaseDriver {
-        void executeQuery(String sql);
+    Database_Driver :: struct {
+        execute_query: proc(sql: string),
     }
 
-    public class DatabaseService {
-        private DatabaseDriver driver;
-        public void run(String sql) {
-            driver.executeQuery(sql);
+    Database_Service :: struct {
+        driver: ^Database_Driver,
+    }
+
+    database_service_run :: proc(self: ^Database_Service, sql: string) {
+        if self.driver != nil && self.driver.execute_query != nil {
+            self.driver.execute_query(sql)
         }
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"Bridge.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"bridge.odin": code})
     detections = BridgePatternRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.BRIDGE
 
 
-def test_iterator_rule_java() -> None:
+def test_iterator_rule_odin() -> None:
     code = """
-    package com.example.iter;
+    package iter
 
-    public interface CustomIterator {
-        boolean hasNext();
-        Object next();
+    Custom_Iterator :: struct {
+        has_next: proc() -> bool,
+        next: proc() -> rawptr,
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"CustomIterator.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"custom_iterator.odin": code})
     detections = IteratorPatternRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.ITERATOR
 
 
-def test_mediator_rule_java() -> None:
+def test_mediator_rule_odin() -> None:
     code = """
-    package com.example.mediator;
+    package mediator
 
-    public interface EventBroker {
-        void publish(String topic, Object msg);
-        void subscribe(String topic, Object handler);
+    Event_Broker :: struct {
+        publish: proc(topic: string, msg: rawptr),
+        subscribe: proc(topic: string, handler: rawptr),
     }
 
-    public class MessageHub implements EventBroker {
-        public void publish(String topic, Object msg) {}
-        public void subscribe(String topic, Object handler) {}
+    Message_Hub :: struct {
+        using base: Event_Broker,
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"Mediator.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"mediator.odin": code})
     detections = MediatorPatternRule().detect(model)
     assert len(detections) >= 1
     assert any(d.pattern_type == PatternType.MEDIATOR for d in detections)

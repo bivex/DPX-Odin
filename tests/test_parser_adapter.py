@@ -1,68 +1,64 @@
-"""Tests for ANTLR Java Parser Adapter."""
+"""Tests for ANTLR Odin Parser Adapter."""
 
-from pattern_detector.adapters.outbound.antlr.java_parser_adapter import JavaAntlrParserAdapter
+from pattern_detector.adapters.outbound.antlr.odin_parser_adapter import OdinAntlrParserAdapter
 
 
-def test_parse_package_and_classes() -> None:
+def test_parse_package_and_structs() -> None:
     code = """
-    package com.example.service;
+    package service
 
-    import java.util.List;
-    import java.util.Map;
+    import "core:fmt"
+    import "core:os"
 
-    public class UserService {
-        private String dbUrl;
-        private static final UserService INSTANCE = new UserService();
+    User_Service :: struct {
+        db_url: string,
+    }
 
-        public void processUser(String id) {
-            System.out.println("Processing: " + id);
-        }
+    user_service_instance: ^User_Service = nil
+
+    user_service_process :: proc(self: ^User_Service, id: string) {
+        fmt.println("Processing:", id)
     }
     """
-    adapter = JavaAntlrParserAdapter()
-    ns = adapter.parse_source(code, file_path="UserService.java")
+    adapter = OdinAntlrParserAdapter()
+    ns = adapter.parse_source(code, file_path="user_service.odin")
 
-    assert ns.name == "com.example.service"
+    assert ns.name == "service"
     assert len(ns.imports) == 2
-    assert "UserService" in ns.records
-    rec = ns.records["UserService"]
-    assert "dbUrl" in rec.fields
-    assert "INSTANCE" in rec.fields
-    assert "INSTANCE" in ns.states
-    assert ns.states["INSTANCE"].kind == "atom"
-    assert ns.states["INSTANCE"].is_once is True
+    assert "User_Service" in ns.records
+    rec = ns.records["User_Service"]
+    assert "db_url" in rec.fields
+    assert "user_service_instance" in ns.states
+    assert ns.states["user_service_instance"].kind == "atom"
+    assert ns.states["user_service_instance"].is_once is True
+    assert "user_service_process" in ns.functions
 
 
 def test_parse_interfaces_and_implementations() -> None:
     code = """
-    package com.example.repo;
+    package repo
 
-    public interface CrudRepository {
-        void save(Object entity);
-        Object findById(String id);
+    Crud_Repository :: struct {
+        save: proc(entity: rawptr),
+        find_by_id: proc(id: string) -> rawptr,
     }
 
-    public class DatabaseRepository implements CrudRepository {
-        private String connectionString;
-
-        public void save(Object entity) {
-            System.out.println("Saving: " + entity);
-        }
-
-        public Object findById(String id) {
-            return null;
-        }
+    Database_Repository :: struct {
+        using base: Crud_Repository,
+        connection_string: string,
     }
+
+    database_repository_save :: proc(self: ^Database_Repository, entity: rawptr) {}
     """
-    adapter = JavaAntlrParserAdapter()
-    ns = adapter.parse_source(code, file_path="DatabaseRepository.java")
+    adapter = OdinAntlrParserAdapter()
+    ns = adapter.parse_source(code, file_path="database_repository.odin")
 
-    assert "CrudRepository" in ns.protocols
-    proto = ns.protocols["CrudRepository"]
+    assert "Crud_Repository" in ns.protocols
+    proto = ns.protocols["Crud_Repository"]
     assert len(proto.methods) == 2
     assert proto.has_method("save")
-    assert proto.has_method("findById")
+    assert proto.has_method("find_by_id")
 
-    assert "DatabaseRepository" in ns.records
-    rec = ns.records["DatabaseRepository"]
-    assert rec.implements_protocol("CrudRepository")
+    assert "Database_Repository" in ns.records
+    rec = ns.records["Database_Repository"]
+    assert rec.implements_protocol("Crud_Repository")

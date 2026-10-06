@@ -1,6 +1,6 @@
-"""Unit tests for SOLID Principles, Clean Code, Coupling & Cohesion Rules."""
+"""Unit tests for SOLID Principles, Clean Code, Coupling & Cohesion Rules on Odin."""
 
-from pattern_detector.adapters.outbound.antlr.java_parser_adapter import JavaAntlrParserAdapter
+from pattern_detector.adapters.outbound.antlr.odin_parser_adapter import OdinAntlrParserAdapter
 from pattern_detector.domain.rules.cohesion_coupling_rule import CohesionCouplingRule
 from pattern_detector.domain.rules.composition_over_inheritance_rule import CompositionOverInheritanceRule
 from pattern_detector.domain.rules.dip_rule import DependencyInversionRule
@@ -16,32 +16,36 @@ from pattern_detector.domain.value_objects import PatternCategory, PatternType
 
 def test_srp_god_object_violation() -> None:
     code = """
-    package com.example.service;
+    package service
 
-    public class MegaGodManager {
-        private String dbUrl;
-        private String httpPort;
-        private String jwtSecret;
-        private String cacheHost;
-        private int retryCount;
-        private boolean isDev;
-        private String logFile;
-
-        public void saveToDatabase() {}
-        public void deleteFromDatabase() {}
-        public void queryDatabase() {}
-        public void handleHttpRequest() {}
-        public void getHttpEndpoint() {}
-        public void serializeToJson() {}
-        public void parseXml() {}
-        public void authenticateUser() {}
-        public void calculateTaxes() {}
-        public void computeDiscounts() {}
-        public void processOrder() {}
-        public void validatePayment() {}
+    Mega_God_Manager :: struct {
+        db_url: string,
+        http_port: string,
+        jwt_secret: string,
+        cache_host: string,
+        retry_count: int,
+        is_dev: bool,
+        log_file: string,
+        metric_name: string,
+        cluster_id: string,
+        queue_name: string,
+        topic_name: string,
     }
+
+    mega_save_to_database :: proc(self: ^Mega_God_Manager) {}
+    mega_delete_from_database :: proc(self: ^Mega_God_Manager) {}
+    mega_query_database :: proc(self: ^Mega_God_Manager) {}
+    mega_handle_http_request :: proc(self: ^Mega_God_Manager) {}
+    mega_get_http_endpoint :: proc(self: ^Mega_God_Manager) {}
+    mega_serialize_to_json :: proc(self: ^Mega_God_Manager) {}
+    mega_parse_xml :: proc(self: ^Mega_God_Manager) {}
+    mega_authenticate_user :: proc(self: ^Mega_God_Manager) {}
+    mega_calculate_taxes :: proc(self: ^Mega_God_Manager) {}
+    mega_compute_discounts :: proc(self: ^Mega_God_Manager) {}
+    mega_process_order :: proc(self: ^Mega_God_Manager) {}
+    mega_validate_payment :: proc(self: ^Mega_God_Manager) {}
     """
-    model = JavaAntlrParserAdapter().parse_sources({"MegaGodManager.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"mega_god_manager.odin": code})
     detections = SingleResponsibilityRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.SINGLE_RESPONSIBILITY
@@ -50,21 +54,23 @@ def test_srp_god_object_violation() -> None:
 
 def test_ocp_instanceof_cascade_violation() -> None:
     code = """
-    package com.example.graphics;
+    package graphics
 
-    public class ShapeDrawer {
-        public void drawShape(Object shape) {
-            if (shape instanceof Circle) {
-                System.out.println("Drawing circle");
-            } else if (shape instanceof Square) {
-                System.out.println("Drawing square");
-            } else if (shape instanceof Triangle) {
-                System.out.println("Drawing triangle");
-            }
+    import "core:fmt"
+
+    Shape_Drawer :: struct {}
+
+    shape_drawer_draw :: proc(self: ^Shape_Drawer, shape: rawptr) {
+        if shape instanceof Circle {
+            fmt.println("Drawing circle")
+        } else if shape instanceof Square {
+            fmt.println("Drawing square")
+        } else if shape instanceof Triangle {
+            fmt.println("Drawing triangle")
         }
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"ShapeDrawer.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"shape_drawer.odin": code})
     detections = OpenClosedPrincipleRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.OPEN_CLOSED
@@ -73,22 +79,22 @@ def test_ocp_instanceof_cascade_violation() -> None:
 
 def test_lsp_unsupported_operation_violation() -> None:
     code = """
-    package com.example.collections;
+    package collections
 
-    public interface ReadOnlyList {
-        void get(int index);
-        void add(Object item);
+    Read_Only_List :: struct {
+        get: proc(index: int),
+        add: proc(item: rawptr),
     }
 
-    public class ImmutableListImpl implements ReadOnlyList {
-        public void get(int index) {}
+    Immutable_List_Impl :: struct {
+        using base: Read_Only_List,
+    }
 
-        public void add(Object item) {
-            throw new UnsupportedOperationException("Immutable list cannot be modified");
-        }
+    immutable_list_add :: proc(self: ^Immutable_List_Impl, item: rawptr) {
+        panic("UnsupportedOperationException: Immutable list cannot be modified")
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"ImmutableListImpl.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"immutable_list.odin": code})
     detections = LiskovSubstitutionRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.LISKOV_SUBSTITUTION
@@ -96,21 +102,21 @@ def test_lsp_unsupported_operation_violation() -> None:
 
 def test_isp_fat_interface_violation() -> None:
     code = """
-    package com.example.worker;
+    package worker
 
-    public interface MonolithicWorker {
-        void code();
-        void test();
-        void deploy();
-        void manageInfrastructure();
-        void reviewBudget();
-        void designGraphics();
-        void recruitEmployees();
-        void handleCustomerSupport();
-        void cleanOffice();
+    Monolithic_Worker :: struct {
+        code: proc(),
+        test: proc(),
+        deploy: proc(),
+        manage_infrastructure: proc(),
+        review_budget: proc(),
+        design_graphics: proc(),
+        recruit_employees: proc(),
+        handle_customer_support: proc(),
+        clean_office: proc(),
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"MonolithicWorker.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"monolithic_worker.odin": code})
     detections = InterfaceSegregationRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.INTERFACE_SEGREGATION
@@ -118,16 +124,16 @@ def test_isp_fat_interface_violation() -> None:
 
 def test_dip_concrete_instantiation_violation() -> None:
     code = """
-    package com.example.service;
+    package service
 
-    public class OrderProcessingService {
-        public void processOrder() {
-            MySqlDatabaseRepository repo = new MySqlDatabaseRepository();
-            repo.saveOrder();
-        }
+    Order_Processing_Service :: struct {}
+
+    order_processing_service_process :: proc(self: ^Order_Processing_Service) {
+        repo := new MySqlDatabaseRepository()
+        repo.save()
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"OrderProcessingService.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"order_processing_service.odin": code})
     detections = DependencyInversionRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.DEPENDENCY_INVERSION
@@ -135,14 +141,14 @@ def test_dip_concrete_instantiation_violation() -> None:
 
 def test_composition_over_inheritance_deep_hierarchy() -> None:
     code = """
-    package com.example.hierarchy;
+    package hierarchy
 
-    public class BaseEntity {}
-    public class AuditableEntity extends BaseEntity {}
-    public class VersionedEntity extends AuditableEntity {}
-    public class ConcreteUserEntity extends VersionedEntity {}
+    Base_Entity :: struct {}
+    Auditable_Entity :: struct { using base: Base_Entity }
+    Versioned_Entity :: struct { using base: Auditable_Entity }
+    Concrete_User_Entity :: struct { using base: Versioned_Entity }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"Hierarchy.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"hierarchy.odin": code})
     detections = CompositionOverInheritanceRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.COMPOSITION_OVER_INHERITANCE
@@ -150,16 +156,18 @@ def test_composition_over_inheritance_deep_hierarchy() -> None:
 
 def test_law_of_demeter_train_wreck_violation() -> None:
     code = """
-    package com.example.shipping;
+    package shipping
 
-    public class ShippingService {
-        public void calculateShipping(Order order) {
-            String zip = order.getCustomer().getAddress().getLocation().getPostalCode();
-            System.out.println("Zip: " + zip);
-        }
+    import "core:fmt"
+
+    Shipping_Service :: struct {}
+
+    shipping_service_calculate :: proc(self: ^Shipping_Service, order: ^Order) {
+        zip := order.getCustomer().getAddress().getLocation().getPostalCode()
+        fmt.println("Zip:", zip)
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"ShippingService.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"shipping_service.odin": code})
     detections = LawOfDemeterRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.LAW_OF_DEMETER
@@ -167,15 +175,17 @@ def test_law_of_demeter_train_wreck_violation() -> None:
 
 def test_kiss_long_parameter_list_violation() -> None:
     code = """
-    package com.example.complex;
+    package complex
 
-    public class ComplexCalculator {
-        public void computeMetrics(int a, int b, String name, double rate, boolean flag, String mode, Object ctx) {
-            System.out.println("Computing");
-        }
+    import "core:fmt"
+
+    Complex_Calculator :: struct {}
+
+    complex_calculator_compute :: proc(self: ^Complex_Calculator, a: int, b: int, name: string, rate: f64, flag: bool, mode: string, ctx: rawptr) {
+        fmt.println("Computing")
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({"ComplexCalculator.java": code})
+    model = OdinAntlrParserAdapter().parse_sources({"complex_calculator.odin": code})
     detections = KissRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.KISS
@@ -183,34 +193,34 @@ def test_kiss_long_parameter_list_violation() -> None:
 
 def test_dry_duplicate_code_violation() -> None:
     code_a = """
-    package com.example.dups;
+    package dups
 
-    public class AlphaProcessor {
-        public double calculateStandardDiscount(double price, int count) {
-            double base = price * count;
-            if (base > 100.0) {
-                return base * 0.85;
-            }
-            return base * 0.95;
+    Alpha_Processor :: struct {}
+
+    alpha_processor_calculate :: proc(self: ^Alpha_Processor, price: f64, count: int) -> f64 {
+        base := price * count
+        if base > 100.0 {
+            return base * 0.85
         }
+        return base * 0.95
     }
     """
     code_b = """
-    package com.example.dups;
+    package dups
 
-    public class BetaProcessor {
-        public double computePartnerDiscount(double price, int count) {
-            double base = price * count;
-            if (base > 100.0) {
-                return base * 0.85;
-            }
-            return base * 0.95;
+    Beta_Processor :: struct {}
+
+    beta_processor_compute :: proc(self: ^Beta_Processor, price: f64, count: int) -> f64 {
+        base := price * count
+        if base > 100.0 {
+            return base * 0.85
         }
+        return base * 0.95
     }
     """
-    model = JavaAntlrParserAdapter().parse_sources({
-        "AlphaProcessor.java": code_a,
-        "BetaProcessor.java": code_b,
+    model = OdinAntlrParserAdapter().parse_sources({
+        "alpha_processor.odin": code_a,
+        "beta_processor.odin": code_b,
     })
     detections = DryRule().detect(model)
     assert len(detections) >= 1
@@ -219,23 +229,22 @@ def test_dry_duplicate_code_violation() -> None:
 
 def test_cohesion_coupling_high_fan_out() -> None:
     code_hub = """
-    package com.example.hub;
+    package hub
 
-    import com.example.mod1.Mod1;
-    import com.example.mod2.Mod2;
-    import com.example.mod3.Mod3;
-    import com.example.mod4.Mod4;
+    import "mod1"
+    import "mod2"
+    import "mod3"
+    import "mod4"
 
-    public class GlobalOrchestrator {}
+    Global_Orchestrator :: struct {}
     """
-    model = JavaAntlrParserAdapter().parse_sources({
-        "GlobalOrchestrator.java": code_hub,
-        "Mod1.java": "package com.example.mod1; public class Mod1 {}",
-        "Mod2.java": "package com.example.mod2; public class Mod2 {}",
-        "Mod3.java": "package com.example.mod3; public class Mod3 {}",
-        "Mod4.java": "package com.example.mod4; public class Mod4 {}",
+    model = OdinAntlrParserAdapter().parse_sources({
+        "global_orchestrator.odin": code_hub,
+        "mod1.odin": "package mod1\nMod1 :: struct {}",
+        "mod2.odin": "package mod2\nMod2 :: struct {}",
+        "mod3.odin": "package mod3\nMod3 :: struct {}",
+        "mod4.odin": "package mod4\nMod4 :: struct {}",
     })
     detections = CohesionCouplingRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.HIGH_COHESION_LOW_COUPLING
-

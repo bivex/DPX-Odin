@@ -84,7 +84,7 @@ def test_cli_html_and_markdown_export() -> None:
     container = create_container()
     scanner = container.get_scanner()
 
-    examples_dir = str(Path(__file__).parent.parent / "examples" / "java_samples")
+    examples_dir = str(Path(__file__).parent.parent / "examples" / "odin_samples")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         html_out = str(Path(tmpdir) / "dashboard.html")

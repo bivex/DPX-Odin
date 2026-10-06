@@ -109,7 +109,7 @@ class SourceLocation:
             "/test/" in norm
             or "/tests/" in norm
             or "/src/test/" in norm
-            or norm.endswith(("test.java", "tests.java", "testcase.java"))
+            or norm.endswith(("_test.odin", "test.odin", "tests.odin", "test.java", "tests.java"))
         )
 
 

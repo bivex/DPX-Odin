@@ -1,18 +1,18 @@
-"""Comprehensive False Positives Test Suite for DPX-Java.
+"""Comprehensive False Positives Test Suite for DPX-Odin.
 
-Verifies that ordinary, standard Java idioms (POJOs, DTOs, JPA Entities, Stream API,
-Optional pipelines, standard equals/hashCode, collections, and pure utility functions)
-do not produce false positive detections for Design Patterns or SOLID Principle violations.
+Verifies that ordinary, standard Odin idioms (data structs, math utilities,
+collections, formatting, and helper procedures) do not produce false positive detections
+for Design Patterns or SOLID Principle violations.
 """
 
-from pattern_detector.adapters.outbound.antlr.java_parser_adapter import JavaAntlrParserAdapter
+from pattern_detector.adapters.outbound.antlr.odin_parser_adapter import OdinAntlrParserAdapter
 from pattern_detector.domain.rules import get_default_rules
 from pattern_detector.domain.services.pattern_detector import PatternDetectorService
 from pattern_detector.domain.value_objects import ConfidenceLevel, PatternType
 
 
 def _scan_snippet(code_map: dict[str, str]):
-    adapter = JavaAntlrParserAdapter()
+    adapter = OdinAntlrParserAdapter()
     model = adapter.parse_sources(code_map)
     detector = PatternDetectorService(rules=get_default_rules())
     return detector.detect_all(model)
@@ -20,173 +20,119 @@ def _scan_snippet(code_map: dict[str, str]):
 
 def test_plain_pure_math_and_string_utilities_have_zero_detections() -> None:
     code = """
-    package com.example.utils;
+    package utils
 
-    public class MathUtils {
-        public static int add(int a, int b) {
-            return a + b;
-        }
+    add :: proc(a: int, b: int) -> int {
+        return a + b
+    }
 
-        public static int multiply(int x, int y) {
-            return x * y;
-        }
+    multiply :: proc(x: int, y: int) -> int {
+        return x * y
+    }
 
-        public static long factorial(int n) {
-            if (n <= 1) return 1;
-            return n * factorial(n - 1);
+    factorial :: proc(n: int) -> int {
+        if n <= 1 {
+            return 1
         }
+        return n * factorial(n - 1)
     }
     """
-    report = _scan_snippet({"MathUtils.java": code})
-    # Pure standard utilities must not trigger any design patterns or violations
+    report = _scan_snippet({"math_utils.odin": code})
     assert report.total_detections_count == 0
 
 
-def test_dto_with_many_getters_and_setters_not_flagged_as_srp_god_object() -> None:
+def test_dto_struct_not_flagged_as_srp_god_object() -> None:
     code = """
-    package com.example.dto;
+    package dto
 
-    public class CustomerProfileDto {
-        private String id;
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phoneNumber;
-        private String streetAddress;
-        private String city;
-        private String postalCode;
-        private String country;
-        private String status;
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getFirstName() { return firstName; }
-        public void setFirstName(String firstName) { this.firstName = firstName; }
-        public String getLastName() { return lastName; }
-        public void setLastName(String lastName) { this.lastName = lastName; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public String getPhoneNumber() { return phoneNumber; }
-        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-        public String getStreetAddress() { return streetAddress; }
-        public void setStreetAddress(String streetAddress) { this.streetAddress = streetAddress; }
-        public String getCity() { return city; }
-        public void setCity(String city) { this.city = city; }
-        public String getPostalCode() { return postalCode; }
-        public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
-        public String getCountry() { return country; }
-        public void setCountry(String country) { this.country = country; }
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
+    Customer_Profile_Dto :: struct {
+        id: string,
+        first_name: string,
+        last_name: string,
+        email: string,
+        phone_number: string,
+        street_address: string,
+        city: string,
+        postal_code: string,
+        country: string,
+        status: string,
     }
     """
-    report = _scan_snippet({"CustomerProfileDto.java": code})
+    report = _scan_snippet({"customer_dto.odin": code})
     srp_detections = [d for d in report.detections if d.pattern_type == PatternType.SINGLE_RESPONSIBILITY]
     assert len(srp_detections) == 0
 
 
-def test_standard_equals_method_with_instanceof_not_flagged_as_ocp_violation() -> None:
+def test_standard_equals_method_not_flagged_as_ocp_violation() -> None:
     code = """
-    package com.example.domain;
+    package domain
 
-    public class MoneyValue {
-        private final double amount;
-        private final String currency;
+    Money_Value :: struct {
+        amount: f64,
+        currency: string,
+    }
 
-        public MoneyValue(double amount, String currency) {
-            this.amount = amount;
-            this.currency = currency;
-        }
-
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (!(obj instanceof MoneyValue)) return false;
-            MoneyValue other = (MoneyValue) obj;
-            return this.amount == other.amount && this.currency.equals(other.currency);
-        }
-
-        public int hashCode() {
-            return Double.hashCode(amount) ^ currency.hashCode();
-        }
+    money_equals :: proc(a: Money_Value, b: Money_Value) -> bool {
+        return a.amount == b.amount && a.currency == b.currency
     }
     """
-    report = _scan_snippet({"MoneyValue.java": code})
+    report = _scan_snippet({"money_value.odin": code})
     ocp_detections = [d for d in report.detections if d.pattern_type == PatternType.OPEN_CLOSED]
     assert len(ocp_detections) == 0
 
 
-def test_fluent_java_stream_and_optional_chains_not_flagged_as_law_of_demeter() -> None:
+def test_fluent_string_and_optional_chains_not_flagged_as_law_of_demeter() -> None:
     code = """
-    package com.example.service;
+    package service
 
-    import java.util.List;
-    import java.util.Optional;
-    import java.util.stream.Collectors;
+    import "core:strings"
 
-    public class DataAggregationService {
-        public List<String> processNames(List<String> rawNames) {
-            return rawNames.stream()
-                .filter(name -> name != null)
-                .map(name -> name.trim())
-                .map(name -> name.toUpperCase())
-                .collect(Collectors.toList());
-        }
+    Data_Service :: struct {}
 
-        public String findSafeUserEmail(Optional<String> optionalEmail) {
-            return optionalEmail
-                .map(email -> email.toLowerCase())
-                .map(email -> email.strip())
-                .orElse("guest@example.com");
-        }
+    data_service_format :: proc(s: string) -> string {
+        return strings.to_upper(strings.trim_space(s))
     }
     """
-    report = _scan_snippet({"DataAggregationService.java": code})
+    report = _scan_snippet({"data_service.odin": code})
     lod_detections = [d for d in report.detections if d.pattern_type == PatternType.LAW_OF_DEMETER]
     assert len(lod_detections) == 0
 
 
-def test_service_instantiating_arraylist_or_dto_not_flagged_as_dip_violation() -> None:
+def test_service_instantiating_array_or_dto_not_flagged_as_dip_violation() -> None:
     code = """
-    package com.example.service;
+    package service
 
-    import java.util.ArrayList;
-    import java.util.List;
+    Item_Listing_Service :: struct {}
 
-    public class ItemListingService {
-        public List<String> generateSummary() {
-            List<String> result = new ArrayList<>();
-            result.add("Item A");
-            result.add("Item B");
-            return result;
-        }
+    item_listing_service_generate :: proc(self: ^Item_Listing_Service) -> [dynamic]string {
+        res := make([dynamic]string)
+        append(&res, "Item A")
+        return res
     }
     """
-    report = _scan_snippet({"ItemListingService.java": code})
+    report = _scan_snippet({"item_listing_service.odin": code})
     dip_detections = [d for d in report.detections if d.pattern_type == PatternType.DEPENDENCY_INVERSION]
     assert len(dip_detections) == 0
 
 
 def test_simple_record_getters_not_flagged_as_dry_duplicate_code() -> None:
     code_a = """
-    package com.example.models;
+    package models
 
-    public class UserEntity {
-        private String id;
-        public String getId() { return this.id; }
+    User_Entity :: struct {
+        id: string,
     }
     """
     code_b = """
-    package com.example.models;
+    package models
 
-    public class ProductEntity {
-        private String id;
-        public String getId() { return this.id; }
+    Product_Entity :: struct {
+        id: string,
     }
     """
     report = _scan_snippet({
-        "UserEntity.java": code_a,
-        "ProductEntity.java": code_b,
+        "user_entity.odin": code_a,
+        "product_entity.odin": code_b,
     })
     dry_detections = [d for d in report.detections if d.pattern_type == PatternType.DRY]
     assert len(dry_detections) == 0
@@ -194,19 +140,19 @@ def test_simple_record_getters_not_flagged_as_dry_duplicate_code() -> None:
 
 def test_string_helpers_with_make_or_create_name_not_flagged_as_factory() -> None:
     code = """
-    package com.example.helpers;
+    package helpers
 
-    public class StringHelpers {
-        public static String makeUppercase(String s) {
-            return s.toUpperCase();
-        }
+    import "core:strings"
 
-        public static String createSlug(String title) {
-            return title.toLowerCase().replace(" ", "-");
-        }
+    make_uppercase :: proc(s: string) -> string {
+        return strings.to_upper(s)
+    }
+
+    create_slug :: proc(title: string) -> string {
+        return strings.to_lower(title)
     }
     """
-    report = _scan_snippet({"StringHelpers.java": code})
+    report = _scan_snippet({"string_helpers.odin": code})
     factory_detections = [
         d for d in report.detections
         if d.pattern_type == PatternType.FACTORY_METHOD and d.confidence.level in (ConfidenceLevel.HIGH, ConfidenceLevel.VERY_HIGH)
@@ -216,94 +162,82 @@ def test_string_helpers_with_make_or_create_name_not_flagged_as_factory() -> Non
 
 def test_factory_and_observer_interfaces_not_falsely_flagged_as_strategy() -> None:
     code = """
-    package com.example.patterns;
+    package patterns
 
-    public interface WidgetFactory {
-        Widget createWidget();
-    }
-    public class SimpleWidgetFactory implements WidgetFactory {
-        public Widget createWidget() { return new Widget(); }
-    }
-    public class AdvancedWidgetFactory implements WidgetFactory {
-        public Widget createWidget() { return new AdvancedWidget(); }
+    Widget :: struct {}
+
+    Widget_Factory :: struct {
+        create_widget: proc() -> ^Widget,
     }
 
-    public interface EventObserver {
-        void onEvent(String event);
+    Simple_Widget_Factory :: struct {
+        using base: Widget_Factory,
     }
-    public class UserObserver implements EventObserver {
-        public void onEvent(String event) {}
+
+    Event_Observer :: struct {
+        on_event: proc(event: string),
     }
-    public class AuditObserver implements EventObserver {
-        public void onEvent(String event) {}
+
+    User_Observer :: struct {
+        using base: Event_Observer,
     }
     """
-    report = _scan_snippet({"Patterns.java": code})
+    report = _scan_snippet({"patterns.odin": code})
     strategy_detections = [d for d in report.detections if d.pattern_type == PatternType.STRATEGY]
     assert len(strategy_detections) == 0
 
 
 def test_command_invoker_with_undo_not_flagged_as_memento() -> None:
     code = """
-    package com.example.command;
+    package command
 
-    import java.util.Deque;
-    import java.util.ArrayDeque;
+    Command_Invoker :: struct {
+        history_count: int,
+    }
 
-    public class CommandInvoker {
-        private Deque<Runnable> history = new ArrayDeque<>();
-
-        public void undoLastCommand() {
-            if (!history.isEmpty()) {
-                history.pop();
-            }
-        }
-
-        public void redoLastCommand() {
+    command_invoker_undo :: proc(self: ^Command_Invoker) {
+        if self.history_count > 0 {
+            self.history_count -= 1
         }
     }
     """
-    report = _scan_snippet({"CommandInvoker.java": code})
+    report = _scan_snippet({"command_invoker.odin": code})
     memento_detections = [d for d in report.detections if d.pattern_type == PatternType.MEMENTO]
     assert len(memento_detections) == 0
 
 
 def test_instanceof_in_tests_not_flagged_as_ocp_violation() -> None:
     code = """
-    package com.example.test;
+    package test
 
-    public class SampleFactoryTest {
-        public void verifyCreation(Object obj) {
-            if (obj instanceof String) {
-                System.out.println("String");
-            } else if (obj instanceof Integer) {
-                System.out.println("Integer");
-            }
+    import "core:fmt"
+
+    verify_creation :: proc(obj: rawptr) {
+        if obj instanceof String {
+            fmt.println("String")
+        } else if obj instanceof Integer {
+            fmt.println("Integer")
         }
     }
     """
-    report = _scan_snippet({"SampleFactoryTest.java": code})
+    report = _scan_snippet({"sample_factory_test.odin": code})
     ocp_detections = [d for d in report.detections if d.pattern_type == PatternType.OPEN_CLOSED]
     assert len(ocp_detections) == 0
 
 
 def test_controller_with_typed_fields_detected_for_dip() -> None:
     code = """
-    package com.example.controller;
+    package controller
 
-    public interface UserRepository {
-        User findById(int id);
+    User_Repository :: struct {
+        find_by_id: proc(id: int) -> rawptr,
     }
 
-    public class UserController {
-        private final UserRepository users;
-
-        public UserController(UserRepository users) {
-            this.users = users;
-        }
+    User_Controller :: struct {
+        users: ^User_Repository,
     }
     """
-    report = _scan_snippet({"UserController.java": code})
+    report = _scan_snippet({"user_controller.odin": code})
     dip_detections = [d for d in report.detections if d.pattern_type == PatternType.DEPENDENCY_INVERSION]
     assert len(dip_detections) >= 1
-    assert dip_detections[0].target_name == "UserController"
+    assert dip_detections[0].target_name == "User_Controller"

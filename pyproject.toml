@@ -1,7 +1,7 @@
 [project]
 name = "pattern-detector"
 version = "0.1.0"
-description = "Hexagonal DDD Pattern Scanner & Detector with ANTLR4 parser"
+description = "Hexagonal DDD Pattern Scanner & Software Architecture Analyzer for Odin"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -1,4 +1,4 @@
-"""Domain entities for Design Patterns metadata in Java."""
+"""Domain entities for Design Patterns metadata in Odin."""
 
 from __future__ import annotations
 
@@ -16,8 +16,12 @@ class PatternDefinition:
     category: PatternCategory
     description: str
     intent: str
-    idiomatic_in_java: bool = True
+    idiomatic_in_odin: bool = True
     tags: list[str] = field(default_factory=list)
+
+    @property
+    def idiomatic_in_java(self) -> bool:
+        return self.idiomatic_in_odin
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -26,7 +30,7 @@ class PatternDefinition:
             "category": self.category.value,
             "description": self.description,
             "intent": self.intent,
-            "idiomatic_in_java": self.idiomatic_in_java,
+            "idiomatic_in_odin": self.idiomatic_in_odin,
             "tags": list(self.tags),
         }
 

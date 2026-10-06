@@ -16,7 +16,7 @@ from pattern_detector.ports.inbound import ScanOptions
 
 app = typer.Typer(
     name="pattern-detector",
-    help="Hexagonal DDD Pattern Scanner & Detector for Java / OOP code.",
+    help="Hexagonal DDD Pattern Scanner & Software Architecture Analyzer for Odin.",
     add_completion=False,
 )
 console = Console()
@@ -79,7 +79,7 @@ def scan(
         ),
     ] = False,
 ) -> None:
-    """Scan a Clojure source code file or directory for software design patterns."""
+    """Scan an Odin source code file or directory for software design patterns."""
     target_path = str(Path(path).resolve())
 
     container = create_container()
@@ -94,7 +94,7 @@ def scan(
         verbose=verbose,
     )
 
-    with console.status(f"[cyan]Scanning [bold]{path}[/bold] using ANTLR parser & Domain Rules...[/cyan]"):
+    with console.status(f"[cyan]Scanning [bold]{path}[/bold] using ANTLR Odin parser & Domain Rules...[/cyan]"):
         report = scanner.scan_path(target_path, options=options)
 
     # Render formatted report to terminal
@@ -135,8 +135,8 @@ def info() -> None:
         "• [bold cyan]Core Domain:[/bold cyan] Agnostic CodeModel, Evidence & Confidence Score Engine, Specification Rules\n"
         "• [bold cyan]Inbound Ports:[/bold cyan] ScannerPort, DetectorPort\n"
         "• [bold cyan]Outbound Ports:[/bold cyan] ParserPort, SourceProviderPort, ResultRepositoryPort, ReportFormatterPort\n"
-        "• [bold cyan]Active Grammar Adapter:[/bold cyan] ANTLR 4.13.2 Java Grammar (JavaLexer.g4 / JavaParser.g4)\n"
-        "• [bold cyan]Supported Extensions:[/bold cyan] .java\n"
+        "• [bold cyan]Active Grammar Adapter:[/bold cyan] ANTLR 4.13.2 Odin Grammar (OdinLexer.g4 / OdinParser.g4)\n"
+        "• [bold cyan]Supported Extensions:[/bold cyan] .odin\n"
     )
     console.print(Panel(info_text, title="ℹ System Info", border_style="cyan"))
 
