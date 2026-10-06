@@ -186,7 +186,7 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                 location=loc,
                 methods=[],
                 docstring="",
-                metadata={"is_interface": "true", "is_union": "true"},
+                metadata={"is_interface": "true", "is_union": "true", "variants": ",".join(variants)},
             )
             self.records[const_name] = RecordModel(
                 name=const_name,
@@ -215,8 +215,8 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                             if first_param_type is None:
                                 first_param_type = t_str
 
-            calls = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", p_body))
-            instantiates = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\{", p_body))
+            calls = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\(", p_body))
+            instantiates = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\{", p_body))
 
             fn_model = FunctionModel(
                 name=const_name,
@@ -263,6 +263,55 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                         location=loc,
                     )
                 )
+
+        # 4. Compound Literal Instantiation (e.g. AUDIO_BACKEND_ALSA :: Audio_Backend_Interface { ... })
+        elif (
+            type_or_expr.expr()
+            and hasattr(type_or_expr.expr(), "compoundLiteral")
+            and type_or_expr.expr().compoundLiteral()
+        ) or (hasattr(type_or_expr, "compoundLiteral") and type_or_expr.compoundLiteral()):
+            lit = (
+                type_or_expr.expr().compoundLiteral()
+                if type_or_expr.expr() and hasattr(type_or_expr.expr(), "compoundLiteral") and type_or_expr.expr().compoundLiteral()
+                else type_or_expr.compoundLiteral()
+            )
+            if lit and lit.type_():
+                target_type = lit.type_().getText()
+                lit_fields: list[str] = []
+                lit_field_types: dict[str, str] = {}
+                if lit.argumentList():
+                    for arg in lit.argumentList().argument():
+                        arg_name = arg.IDENT().getText() if arg.IDENT() else ""
+                        arg_val = arg.expr().getText() if arg.expr() else (arg.type_().getText() if arg.type_() else "")
+                        if arg_name:
+                            lit_fields.append(arg_name)
+                            if arg_val:
+                                lit_field_types[arg_name] = arg_val
+
+                self.records[const_name] = RecordModel(
+                    name=const_name,
+                    namespace=self.package_name,
+                    location=loc,
+                    fields=lit_fields,
+                    field_types=lit_field_types,
+                    implemented_protocols=[target_type],
+                    methods=[],
+                    is_type=False,
+                )
+
+        # 5. Distinct Type (e.g. Sound :: distinct Handle)
+        elif type_or_expr.type_() and hasattr(type_or_expr.type_(), "distinctType") and type_or_expr.type_().distinctType():
+            base_type = type_or_expr.type_().distinctType().type_().getText() if type_or_expr.type_().distinctType().type_() else ""
+            self.records[const_name] = RecordModel(
+                name=const_name,
+                namespace=self.package_name,
+                location=loc,
+                fields=[base_type] if base_type else [],
+                field_types={"base_type": base_type} if base_type else {},
+                implemented_protocols=[base_type] if base_type else [],
+                methods=[],
+                is_type=True,
+            )
 
         return self.visitChildren(ctx)
 
@@ -347,6 +396,23 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                         and proto_name not in rec.implemented_protocols
                     ):
                         rec.implemented_protocols.append(proto_name)
+
+        # Link procedure references assigned in compound literal records to rec.methods
+        for rec in self.records.values():
+            for proc_name in rec.field_types.values():
+                if proc_name in self.functions:
+                    fn = self.functions[proc_name]
+                    if fn not in rec.methods:
+                        rec.methods.append(fn)
+
+        # Link union variants defined in the same file into rec.implemented_protocols
+        for proto_name, proto in self.protocols.items():
+            if proto.metadata.get("is_union") == "true":
+                raw_vars = proto.metadata.get("variants", "")
+                variants = [v.strip().lstrip("^[]") for v in raw_vars.split(",") if v.strip()]
+                for v in variants:
+                    if v in self.records and proto_name not in self.records[v].implemented_protocols:
+                        self.records[v].implemented_protocols.append(proto_name)
 
 
 class OdinAntlrParserAdapter(ParserPort):

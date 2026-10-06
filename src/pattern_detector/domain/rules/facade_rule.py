@@ -36,8 +36,15 @@ class FacadePatternRule(BasePatternRule):
                         prefix = call.split("/")[0]
                         if prefix != ns.name and not prefix.startswith("clojure."):
                             subsystem_calls.setdefault(prefix, []).append(fn.name)
+                    elif "." in call:
+                        prefix = call.split(".")[0]
+                        if prefix != ns.name and prefix not in ("fmt", "log", "testing", "mem", "math", "strings", "runtime", "c"):
+                            subsystem_calls.setdefault(prefix, []).append(fn.name)
 
-            if len(subsystem_calls) >= 2 or (len(subsystem_calls) >= 1 and is_facade_named and len(ns.functions) >= 2):
+            file_base = ns.file_path.split("/")[-1].replace(".odin", "").replace(".clj", "")
+            is_root_api = file_base == ns.name or any(file_base.endswith(sfx) for sfx in ("api", "facade", "client", "engine"))
+
+            if len(subsystem_calls) >= 2 or (len(subsystem_calls) >= 1 and (is_facade_named or is_root_api) and len(ns.functions) >= 2):
                 evidences: list[Evidence] = []
                 related_locs: list[SourceLocation] = []
 
@@ -50,10 +57,10 @@ class FacadePatternRule(BasePatternRule):
                     )
                 )
 
-                if is_facade_named:
+                if is_facade_named or is_root_api:
                     evidences.append(
                         self.evidence(
-                            description=f"Namespace '{ns.name}' follows API Gateway / Facade naming convention",
+                            description=f"Namespace '{ns.name}' serves as public unified API Façade entrypoint",
                             weight=0.35,
                             location=SourceLocation(file_path=ns.file_path, line=1),
                             code_suffix="FACADE_NAMING",

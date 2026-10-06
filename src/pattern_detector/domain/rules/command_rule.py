@@ -119,4 +119,48 @@ class CommandPatternRule(BasePatternRule):
                         )
                     )
 
+        # 3. Tagged Union Commands / Events (Odin Sum Types)
+        for proto in model.all_protocols():
+            if proto.metadata.get("is_union") != "true":
+                continue
+            name_lower = proto.name.lower()
+            is_cmd_union = any(
+                k in name_lower
+                for k in ("event", "command", "cmd", "action", "msg", "message", "op", "operation")
+            )
+            raw_vars = proto.metadata.get("variants", "")
+            variants = [v.strip().lstrip("^[]") for v in raw_vars.split(",") if v.strip()]
+            if is_cmd_union and len(variants) >= 2:
+                evidences = [
+                    self.evidence(
+                        description=f"Tagged union '{proto.name}' encapsulates {len(variants)} discrete command/event variant types: {', '.join(variants[:6])}{'...' if len(variants) > 6 else ''}",
+                        weight=min(0.65, 0.40 + 0.05 * len(variants)),
+                        location=proto.location,
+                        code_suffix="UNION_COMMAND_VARIANTS",
+                    ),
+                    self.evidence(
+                        description="Enables type-safe polymorphic command dispatch and event queuing without class hierarchies",
+                        weight=0.30,
+                        location=proto.location,
+                        code_suffix="DATA_ORIENTED_COMMAND",
+                    ),
+                ]
+                cmd_related_locs: list[SourceLocation] = []
+                for v in variants[:10]:
+                    variant_rec = model.find_record(v)
+                    if variant_rec:
+                        cmd_related_locs.append(variant_rec.location)
+
+                detections.append(
+                    self.create_detection(
+                        target_name=proto.name,
+                        target_kind="union_command",
+                        evidences=evidences,
+                        primary_location=proto.location,
+                        related_locations=cmd_related_locs,
+                        summary=f"Command pattern: tagged union '{proto.name}' defines {len(variants)} polymorphic command/event payloads",
+                        base_score=0.25,
+                    )
+                )
+
         return detections

@@ -1,6 +1,8 @@
-"""Visitor Pattern Detection Rule for Java."""
+"""Visitor Pattern Detection Rule."""
 
 from __future__ import annotations
+
+import re
 
 from pattern_detector.domain.code_model import CodeModel
 from pattern_detector.domain.detection import Detection
@@ -91,5 +93,42 @@ class VisitorPatternRule(BasePatternRule):
                     )
                     detection.pattern_category = PatternCategory.BEHAVIORAL
                     detections.append(detection)
+
+        # 3. Type-Switch Visitor (Odin/Data-Oriented type inspection over unions)
+        for fn in model.all_functions():
+            if fn.location.is_test_location or fn.is_test:
+                continue
+            body = fn.body_text or ""
+            switch_in_matches = re.findall(
+                r"(?:#partial\s+)?switch\s+(?:&)?([a-zA-Z_][a-zA-Z0-9_]*)\s+in\s+([a-zA-Z_][a-zA-Z0-9_\.]*)",
+                body,
+            )
+            case_matches = re.findall(r"\bcase\s+([a-zA-Z_][a-zA-Z0-9_]+)\s*:", body)
+            if switch_in_matches and len(case_matches) >= 3:
+                _, target_expr = switch_in_matches[0]
+                evidences = [
+                    self.evidence(
+                        description=f"Procedure '{fn.name}' performs exhaustive type inspection over '{target_expr}' across {len(case_matches)} cases: {', '.join(case_matches[:5])}",
+                        weight=min(0.65, 0.40 + 0.05 * len(case_matches)),
+                        location=fn.location,
+                        code_suffix="TYPE_SWITCH_VISITOR_DISPATCH",
+                    ),
+                    self.evidence(
+                        description="Data-oriented Visitor pattern: separates operations from polymorphic union data structures",
+                        weight=0.30,
+                        location=fn.location,
+                        code_suffix="TYPE_SAFE_VISITOR",
+                    ),
+                ]
+                detection = self.create_detection(
+                    target_name=fn.name,
+                    target_kind="type_switch_visitor",
+                    evidences=evidences,
+                    primary_location=fn.location,
+                    summary=f"Visitor pattern: procedure '{fn.name}' dispatches operations over {len(case_matches)} types of '{target_expr}'",
+                    base_score=0.30,
+                )
+                detection.pattern_category = PatternCategory.BEHAVIORAL
+                detections.append(detection)
 
         return detections

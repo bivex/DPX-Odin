@@ -5,7 +5,7 @@ from __future__ import annotations
 from pattern_detector.domain.code_model import CodeModel
 from pattern_detector.domain.detection import Detection
 from pattern_detector.domain.rules.base import BasePatternRule
-from pattern_detector.domain.value_objects import Evidence, PatternCategory, PatternType
+from pattern_detector.domain.value_objects import Evidence, PatternCategory, PatternType, SourceLocation
 
 
 class SingleResponsibilityRule(BasePatternRule):
@@ -99,5 +99,35 @@ class SingleResponsibilityRule(BasePatternRule):
                 )
                 # Assign PRINCIPLE category
                 detections[-1].pattern_category = PatternCategory.PRINCIPLE
+
+        # 2. God Module / God File (Files with >35 functions violating modular SRP)
+        for ns in model.namespaces.values():
+            fn_count = len(ns.functions)
+            if fn_count >= 35:
+                file_name = ns.file_path.split("/")[-1]
+                evidences = [
+                    self.evidence(
+                        description=f"File/module '{file_name}' defines {fn_count} procedures in a single file, violating SRP",
+                        weight=min(0.65, 0.35 + 0.005 * fn_count),
+                        location=SourceLocation(file_path=ns.file_path, line=1),
+                        code_suffix="SRP_GOD_MODULE",
+                    ),
+                    self.evidence(
+                        description="Monolithic module file should be decomposed into dedicated cohesive subpackages",
+                        weight=0.30,
+                        location=SourceLocation(file_path=ns.file_path, line=1),
+                        code_suffix="SRP_MODULAR_DECOMPOSITION_NEEDED",
+                    ),
+                ]
+                detection = self.create_detection(
+                    target_name=file_name,
+                    target_kind="god_module_srp_violation",
+                    evidences=evidences,
+                    primary_location=SourceLocation(file_path=ns.file_path, line=1),
+                    summary=f"SRP Violation (God Module): '{file_name}' aggregates {fn_count} procedures in a single monolithic file",
+                    base_score=0.35,
+                )
+                detection.pattern_category = PatternCategory.PRINCIPLE
+                detections.append(detection)
 
         return detections

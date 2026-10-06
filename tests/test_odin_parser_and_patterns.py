@@ -82,3 +82,97 @@ def test_odin_pattern_detection_strategy_and_composite() -> None:
     assert report.total_detections_count >= 1
     pattern_types = [d.pattern_type for d in report.detections]
     assert PatternType.STRATEGY in pattern_types or PatternType.COMPOSITE in pattern_types
+
+
+def test_odin_compound_literal_interface_and_lifecycle() -> None:
+    odin_code = """
+    package audio
+
+    Audio_Backend_Interface :: struct {
+        init: proc() -> bool,
+        shutdown: proc(),
+    }
+
+    alsa_init :: proc() -> bool { return true }
+    alsa_shutdown :: proc() {}
+
+    AUDIO_BACKEND_ALSA :: Audio_Backend_Interface {
+        init = alsa_init,
+        shutdown = alsa_shutdown,
+    }
+
+    AUDIO_BACKEND_WAVEOUT :: Audio_Backend_Interface {
+        init = alsa_init,
+        shutdown = alsa_shutdown,
+    }
+    """
+
+    adapter = OdinAntlrParserAdapter()
+    model = adapter.parse_sources({"audio.odin": odin_code})
+    detector = PatternDetectorService(rules=get_default_rules())
+    report = detector.detect_all(model)
+
+    detected_types = {d.pattern_type for d in report.detections}
+    assert PatternType.LIFECYCLE_COMPONENT in detected_types
+    assert PatternType.STRATEGY in detected_types
+
+
+def test_odin_tagged_union_command_and_visitor() -> None:
+    odin_code = """
+    package events
+
+    Event :: union {
+        Event_Key_Down,
+        Event_Mouse_Move,
+        Event_Close,
+    }
+
+    Event_Key_Down :: struct { key: int }
+    Event_Mouse_Move :: struct { x: int, y: int }
+    Event_Close :: struct {}
+
+    dispatch_event :: proc(ev: Event) {
+        switch e in ev {
+        case Event_Key_Down:
+        case Event_Mouse_Move:
+        case Event_Close:
+        }
+    }
+    """
+
+    adapter = OdinAntlrParserAdapter()
+    model = adapter.parse_sources({"events.odin": odin_code})
+    detector = PatternDetectorService(rules=get_default_rules())
+    report = detector.detect_all(model)
+
+    detected_types = {d.pattern_type for d in report.detections}
+    assert PatternType.COMMAND in detected_types
+    assert PatternType.VISITOR in detected_types
+
+
+def test_odin_handle_proxy_and_flyweight_cache() -> None:
+    odin_code = """
+    package res
+
+    Handle :: distinct u64
+    Texture_Handle :: distinct Handle
+    Shader_Handle :: distinct Handle
+
+    Texture_Cache :: struct {
+        textures: map[string]Texture_Handle,
+    }
+
+    texture_cache_get :: proc(c: ^Texture_Cache, name: string) -> Texture_Handle {
+        return c.textures[name]
+    }
+    """
+
+    adapter = OdinAntlrParserAdapter()
+    model = adapter.parse_sources({"res.odin": odin_code})
+    detector = PatternDetectorService(rules=get_default_rules())
+    report = detector.detect_all(model)
+
+    detected_types = {d.pattern_type for d in report.detections}
+    assert PatternType.PROXY in detected_types
+    assert PatternType.FLYWEIGHT in detected_types
+

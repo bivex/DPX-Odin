@@ -82,4 +82,38 @@ class AdapterPatternRule(BasePatternRule):
                 )
             )
 
+        # 2. Struct Records explicitly designated as Adapter / Glue
+        for rec in model.all_records():
+            rec_name_lower = rec.name.lower()
+            is_adapter = any(k in rec_name_lower for k in ("glue", "adapter", "wrapper"))
+            if is_adapter and not rec.is_test:
+                evidences = [
+                    self.evidence(
+                        description=f"Record '{rec.name}' serves as an Adapter/Glue layer between subsystems",
+                        weight=0.55,
+                        location=rec.location,
+                        code_suffix="ADAPTER_GLUE_RECORD",
+                    )
+                ]
+                if rec.implemented_protocols:
+                    evidences.append(
+                        self.evidence(
+                            description=f"Adapts subsystem to target interface(s): {', '.join(rec.implemented_protocols)}",
+                            weight=0.35,
+                            location=rec.location,
+                            code_suffix="TARGET_INTERFACE_ADAPTATION",
+                        )
+                    )
+                detections.append(
+                    self.create_detection(
+                        target_name=rec.name,
+                        target_kind="adapter_glue",
+                        evidences=evidences,
+                        primary_location=rec.location,
+                        related_locations=[],
+                        summary=f"Adapter pattern: '{rec.name}' adapts platform/subsystem into standard interface",
+                        base_score=0.25,
+                    )
+                )
+
         return detections

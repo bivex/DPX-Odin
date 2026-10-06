@@ -311,15 +311,38 @@ class CodeModel:
                     return proto
         return None
 
+    def find_record(self, name: str) -> RecordModel | None:
+        norm = name.split("/")[-1]
+        for ns in self.namespaces.values():
+            if name in ns.records:
+                return ns.records[name]
+            for r_name, rec in ns.records.items():
+                if r_name == norm or rec.name == norm:
+                    return rec
+        return None
+
     def find_records_implementing(self, protocol_name: str) -> list[RecordModel]:
         if self._implements_cache is None:
             self._implements_cache = {}
             for rec in self.all_records():
-                for proto in rec.implemented_protocols:
-                    self._implements_cache.setdefault(proto, []).append(rec)
-                    norm = proto.split("/")[-1]
-                    if norm != proto:
+                for proto_name in rec.implemented_protocols:
+                    self._implements_cache.setdefault(proto_name, []).append(rec)
+                    norm = proto_name.split("/")[-1]
+                    if norm != proto_name:
                         self._implements_cache.setdefault(norm, []).append(rec)
+
+            for protocol_model in self.all_protocols():
+                if protocol_model.metadata.get("is_union") == "true":
+                    raw_variants = protocol_model.metadata.get("variants", "")
+                    variants = [v.strip().lstrip("^[]") for v in raw_variants.split(",") if v.strip()]
+                    for v in variants:
+                        v_rec = self.find_record(v)
+                        if v_rec:
+                            if v_rec not in self._implements_cache.setdefault(protocol_model.name, []):
+                                self._implements_cache[protocol_model.name].append(v_rec)
+                            norm = protocol_model.name.split("/")[-1]
+                            if norm != protocol_model.name and v_rec not in self._implements_cache.setdefault(norm, []):
+                                self._implements_cache[norm].append(v_rec)
 
         norm_target = protocol_name.split("/")[-1]
         return self._implements_cache.get(protocol_name, self._implements_cache.get(norm_target, []))
@@ -356,6 +379,10 @@ class CodeModel:
                 for call in fn.calls:
                     if "/" in call:
                         prefix = call.split("/")[0]
+                        if prefix in all_ns_names and prefix != ns_name:
+                            graph[ns_name].add(prefix)
+                    elif "." in call:
+                        prefix = call.split(".")[0]
                         if prefix in all_ns_names and prefix != ns_name:
                             graph[ns_name].add(prefix)
 

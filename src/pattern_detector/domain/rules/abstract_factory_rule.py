@@ -80,4 +80,28 @@ class AbstractFactoryRule(BasePatternRule):
                     )
                 )
 
+        # 2. Static / Compile-Time Abstract Factory (Chooser modules selecting backend families)
+        for ns in model.namespaces.values():
+            file_name = ns.file_path.split("/")[-1].lower()
+            if "chooser" in file_name or "chooser" in ns.name.lower():
+                evidences = [
+                    self.evidence(
+                        description=f"Module '{ns.file_path.split('/')[-1]}' acts as a Compile-Time Abstract Factory selecting backend family based on platform/configuration",
+                        weight=0.70,
+                        location=SourceLocation(file_path=ns.file_path, line=1),
+                        code_suffix="STATIC_ABSTRACT_FACTORY",
+                    )
+                ]
+                detections.append(
+                    self.create_detection(
+                        target_name=ns.file_path.split("/")[-1].replace(".odin", ""),
+                        target_kind="static_abstract_factory",
+                        evidences=evidences,
+                        primary_location=SourceLocation(file_path=ns.file_path, line=1),
+                        related_locations=[],
+                        summary=f"Abstract Factory: compile-time module '{ns.file_path.split('/')[-1]}' resolves subsystem backend family",
+                        base_score=0.25,
+                    )
+                )
+
         return detections

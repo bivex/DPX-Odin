@@ -88,4 +88,42 @@ class ProxyPatternRule(BasePatternRule):
                     )
                 )
 
+        # 3. Type-Safe Handle / Opaque Proxy Tokens (e.g. Sound :: distinct Handle)
+        for rec in model.all_records():
+            if rec.is_type:
+                rec_name_lower = rec.name.lower()
+                is_handle = (
+                    rec_name_lower.endswith("_handle")
+                    or rec_name_lower == "handle"
+                    or any(f.lower().endswith("handle") for f in rec.fields)
+                    or any("handle" in v.lower() for v in rec.field_types.values())
+                    or any(p.lower().endswith("handle") for p in rec.implemented_protocols)
+                )
+                if is_handle and not rec.is_test:
+                    evidences = [
+                        self.evidence(
+                            description=f"Type '{rec.name}' defines an opaque proxy handle preventing direct pointer manipulation",
+                            weight=0.60,
+                            location=rec.location,
+                            code_suffix="OPAQUE_HANDLE_PROXY",
+                        ),
+                        self.evidence(
+                            description="Decouples client code from underlying resource allocation and prevents dangling pointer vulnerabilities",
+                            weight=0.30,
+                            location=rec.location,
+                            code_suffix="SAFE_RESOURCE_PROXY",
+                        ),
+                    ]
+                    detections.append(
+                        self.create_detection(
+                            target_name=rec.name,
+                            target_kind="opaque_handle_proxy",
+                            evidences=evidences,
+                            primary_location=rec.location,
+                            related_locations=[],
+                            summary=f"Proxy pattern: handle type '{rec.name}' serves as opaque surrogate for managed resources",
+                            base_score=0.20,
+                        )
+                    )
+
         return detections

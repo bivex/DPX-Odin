@@ -81,14 +81,16 @@ class StrategyPatternRule(BasePatternRule):
             "Strategy", "Policy", "Algorithm", "Behavior", "Action", "Rule",
             "Processor", "Callback", "Calculator", "Operation", "Formatter",
             "Validator", "Converter", "Matcher", "Parser", "Comparator",
-            "Predicate", "Function", "Handler", "Filter", "Mapper", "Generator", "Driver"
+            "Predicate", "Function", "Handler", "Filter", "Mapper", "Generator", "Driver",
+            "Interface", "Backend", "Glue", "Provider", "VTable", "Engine"
         )
 
         strategy_method_verbs = (
             "sort", "pay", "execute", "calculate", "apply", "filter", "validate",
             "format", "compress", "route", "process", "slay", "authenticate",
             "handle", "run", "doaction", "match", "transform", "print", "export",
-            "render", "compute", "search", "dispatch", "evaluate", "perform"
+            "render", "compute", "search", "dispatch", "evaluate", "perform",
+            "init", "shutdown", "update", "draw", "push", "poll", "read", "write"
         )
 
         for proto in model.all_protocols():
