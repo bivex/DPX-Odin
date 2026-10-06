@@ -25,11 +25,21 @@ class CohesionCouplingRule(BasePatternRule):
 
         # Analyze namespace/package coupling
         for ns in model.namespaces.values():
-            internal_requires = [r for r in ns.requires if any(other in r for other in model.namespaces if other != ns.name)]
+            loc = SourceLocation(file_path=ns.file_path, line=1, column=1)
+            # Skip test files and test suites from coupling smells
+            if loc.is_test_location:
+                continue
+
+            # Deduplicate distinct internal module dependencies
+            internal_requires: set[str] = set()
+            for r in ns.requires:
+                clean_r = r.split(":")[-1].split("/")[-1].strip("\"'")
+                for other in model.namespaces:
+                    if other != ns.name and clean_r == other:
+                        internal_requires.add(other)
 
             if len(internal_requires) >= 4:
-                deps_str = ", ".join(internal_requires)
-                loc = SourceLocation(file_path=ns.file_path, line=1, column=1)
+                deps_str = ", ".join(sorted(internal_requires))
                 evidences = [
                     self.evidence(
                         description=f"Package '{ns.name}' has high efferent coupling (Fan-Out = {len(internal_requires)}), depending on: {deps_str}",

@@ -267,14 +267,21 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
         return self.visitChildren(ctx)
 
     def visitVariableDecl(self, ctx: OdinParser.VariableDeclContext) -> Any:
+        # Crucial False Positive Protection: Only top-level variable declarations
+        # can represent global singleton state in Odin. Local variables inside procedure bodies
+        # or statement blocks must NEVER be extracted as global StateModels.
+        if not isinstance(ctx.parentCtx, OdinParser.TopLevelDeclContext):
+            return self.visitChildren(ctx)
+
         loc = self._get_location(ctx)
         if ctx.identList():
             var_names = [id_tok.getText() for id_tok in ctx.identList().IDENT()]
             for v_name in var_names:
                 v_lower = v_name.lower()
-                is_singleton = any(
-                    k in v_lower
-                    for k in ("instance", "singleton", "pool", "cache", "app_state", "global", "registry")
+                is_singleton = (
+                    any(k in v_lower for k in ("instance", "singleton", "app_state", "app_context"))
+                    or v_lower.endswith("_instance")
+                    or v_lower.startswith("instance_")
                 )
                 if is_singleton:
                     self.states[v_name] = StateModel(

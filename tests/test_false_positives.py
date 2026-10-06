@@ -241,3 +241,50 @@ def test_controller_with_typed_fields_detected_for_dip() -> None:
     dip_detections = [d for d in report.detections if d.pattern_type == PatternType.DEPENDENCY_INVERSION]
     assert len(dip_detections) >= 1
     assert dip_detections[0].target_name == "User_Controller"
+
+
+def test_local_variables_in_procedures_not_flagged_as_singletons() -> None:
+    code = """
+    package definition
+
+    lookup :: proc(name: string) -> bool {
+        global := globals[name] or_return
+        local_global := get_local()
+        cache := get_cache()
+        pool := get_pool()
+        return global != nil
+    }
+    """
+    report = _scan_snippet({"definition.odin": code})
+    singleton_detections = [d for d in report.detections if d.pattern_type == PatternType.SINGLETON]
+    assert len(singleton_detections) == 0
+
+
+def test_struct_with_pool_and_generic_types_not_flagged_as_singleton() -> None:
+    code = """
+    package nbio
+
+    _IO :: struct {
+        iocp: win.HANDLE,
+        completed: queue.Queue(^Completion),
+        completion_pool: Pool(Completion),
+        io_pending: int,
+    }
+    """
+    report = _scan_snippet({"nbio_internal.odin": code})
+    singleton_detections = [d for d in report.detections if d.pattern_type == PatternType.SINGLETON]
+    assert len(singleton_detections) == 0
+
+
+def test_package_with_normal_imports_and_tests_not_flagged_as_tight_coupling() -> None:
+    code = """
+    package main
+
+    import "core:fmt"
+    import "src:server"
+    import "server"
+    import "src:common"
+    """
+    report = _scan_snippet({"tests/session_test.odin": code})
+    coupling_detections = [d for d in report.detections if d.pattern_type == PatternType.HIGH_COHESION_LOW_COUPLING]
+    assert len(coupling_detections) == 0

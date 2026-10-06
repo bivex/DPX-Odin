@@ -1,4 +1,4 @@
-# Generated from grammars/OdinParser.g4 by ANTLR 4.13.2
+# Generated from OdinParser.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .OdinParser import OdinParser
@@ -323,6 +323,24 @@ class OdinParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by OdinParser#labelStmt.
+    def enterLabelStmt(self, ctx:OdinParser.LabelStmtContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#labelStmt.
+    def exitLabelStmt(self, ctx:OdinParser.LabelStmtContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#directiveStmt.
+    def enterDirectiveStmt(self, ctx:OdinParser.DirectiveStmtContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#directiveStmt.
+    def exitDirectiveStmt(self, ctx:OdinParser.DirectiveStmtContext):
+        pass
+
+
     # Enter a parse tree produced by OdinParser#returnStmt.
     def enterReturnStmt(self, ctx:OdinParser.ReturnStmtContext):
         pass
@@ -485,6 +503,15 @@ class OdinParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by OdinParser#matrixType.
+    def enterMatrixType(self, ctx:OdinParser.MatrixTypeContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#matrixType.
+    def exitMatrixType(self, ctx:OdinParser.MatrixTypeContext):
+        pass
+
+
     # Enter a parse tree produced by OdinParser#procType.
     def enterProcType(self, ctx:OdinParser.ProcTypeContext):
         pass
@@ -500,6 +527,24 @@ class OdinParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by OdinParser#distinctType.
     def exitDistinctType(self, ctx:OdinParser.DistinctTypeContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#polyType.
+    def enterPolyType(self, ctx:OdinParser.PolyTypeContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#polyType.
+    def exitPolyType(self, ctx:OdinParser.PolyTypeContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#specializedType.
+    def enterSpecializedType(self, ctx:OdinParser.SpecializedTypeContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#specializedType.
+    def exitSpecializedType(self, ctx:OdinParser.SpecializedTypeContext):
         pass
 
 
@@ -521,6 +566,24 @@ class OdinParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by OdinParser#ImplicitSelectorExpr.
+    def enterImplicitSelectorExpr(self, ctx:OdinParser.ImplicitSelectorExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#ImplicitSelectorExpr.
+    def exitImplicitSelectorExpr(self, ctx:OdinParser.ImplicitSelectorExprContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#PostfixControlExpr.
+    def enterPostfixControlExpr(self, ctx:OdinParser.PostfixControlExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#PostfixControlExpr.
+    def exitPostfixControlExpr(self, ctx:OdinParser.PostfixControlExprContext):
+        pass
+
+
     # Enter a parse tree produced by OdinParser#DerefExpr.
     def enterDerefExpr(self, ctx:OdinParser.DerefExprContext):
         pass
@@ -536,6 +599,15 @@ class OdinParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by OdinParser#RelationalExpr.
     def exitRelationalExpr(self, ctx:OdinParser.RelationalExprContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#RangeExpr.
+    def enterRangeExpr(self, ctx:OdinParser.RangeExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#RangeExpr.
+    def exitRangeExpr(self, ctx:OdinParser.RangeExprContext):
         pass
 
 
@@ -566,6 +638,15 @@ class OdinParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by OdinParser#DirectiveExpr.
+    def enterDirectiveExpr(self, ctx:OdinParser.DirectiveExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#DirectiveExpr.
+    def exitDirectiveExpr(self, ctx:OdinParser.DirectiveExprContext):
+        pass
+
+
     # Enter a parse tree produced by OdinParser#LogicalOrExpr.
     def enterLogicalOrExpr(self, ctx:OdinParser.LogicalOrExprContext):
         pass
@@ -581,6 +662,15 @@ class OdinParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by OdinParser#MultiplicativeExpr.
     def exitMultiplicativeExpr(self, ctx:OdinParser.MultiplicativeExprContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#TypeidExpr.
+    def enterTypeidExpr(self, ctx:OdinParser.TypeidExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#TypeidExpr.
+    def exitTypeidExpr(self, ctx:OdinParser.TypeidExprContext):
         pass
 
 
@@ -620,6 +710,15 @@ class OdinParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by OdinParser#PolyParamExpr.
+    def enterPolyParamExpr(self, ctx:OdinParser.PolyParamExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#PolyParamExpr.
+    def exitPolyParamExpr(self, ctx:OdinParser.PolyParamExprContext):
+        pass
+
+
     # Enter a parse tree produced by OdinParser#CompoundLitExpr.
     def enterCompoundLitExpr(self, ctx:OdinParser.CompoundLitExprContext):
         pass
@@ -635,6 +734,15 @@ class OdinParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by OdinParser#CallExpr.
     def exitCallExpr(self, ctx:OdinParser.CallExprContext):
+        pass
+
+
+    # Enter a parse tree produced by OdinParser#InExpr.
+    def enterInExpr(self, ctx:OdinParser.InExprContext):
+        pass
+
+    # Exit a parse tree produced by OdinParser#InExpr.
+    def exitInExpr(self, ctx:OdinParser.InExprContext):
         pass
 
 

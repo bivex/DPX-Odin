@@ -5,7 +5,7 @@ options {
 }
 
 compilationUnit
-    : fileTag* packageDecl importDecl* topLevelDecl* EOF
+    : fileTag* packageDecl? importDecl* topLevelDecl* EOF
     ;
 
 fileTag
@@ -30,6 +30,7 @@ topLevelDecl
     | variableDecl
     | foreignBlock
     | whenStmt
+    | directiveStmt
     | SEMI
     ;
 
@@ -79,7 +80,8 @@ structFieldList
     ;
 
 structField
-    : (USING | DIRECTIVE)? identList COLON type (STRING_LIT | RAW_STRING_LIT)?
+    : (USING | DIRECTIVE)? identList (COLON ELLIPSIS? type (EQUAL expr)? (STRING_LIT | RAW_STRING_LIT)? | COLON_EQUAL expr)
+    | (USING | DIRECTIVE)? type (STRING_LIT | RAW_STRING_LIT)?
     ;
 
 unionDecl
@@ -99,11 +101,11 @@ enumMember
     ;
 
 bitSetDecl
-    : BIT_SET LBRACK type (SEMI type)? RBRACK
+    : BIT_SET LBRACK (type | expr) (SEMI (type | expr))? RBRACK
     ;
 
 procDecl
-    : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)? procBody
+    : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)? (WHERE exprList)? procBody
     ;
 
 procGroup
@@ -131,7 +133,9 @@ paramList
     ;
 
 param
-    : (USING | DIRECTIVE)? identList COLON ELLIPSIS? type (EQUAL expr)?
+    : (USING | DIRECTIVE)? (identList | DOLLAR IDENT) COLON ELLIPSIS? type (EQUAL expr)?
+    | (USING | DIRECTIVE)? identList COLON_EQUAL expr
+    | ELLIPSIS? type
     ;
 
 returnTypes
@@ -144,12 +148,13 @@ returnFieldList
     ;
 
 returnField
-    : (IDENT COLON)? type
+    : (IDENT COLON)? (type | EXCLAMATION)
     ;
 
 procBody
     : block
     | MINUS MINUS MINUS SEMI?
+    | DO stmt
     ;
 
 block
@@ -163,6 +168,8 @@ stmt
     | whenStmt
     | forStmt
     | switchStmt
+    | labelStmt
+    | directiveStmt
     | variableDecl
     | constantDecl
     | assignStmt
@@ -174,6 +181,14 @@ stmt
     | SEMI
     ;
 
+labelStmt
+    : IDENT COLON (forStmt | switchStmt | block)
+    ;
+
+directiveStmt
+    : DIRECTIVE (LPAREN argumentList? RPAREN)? SEMI?
+    ;
+
 returnStmt
     : RETURN exprList? SEMI?
     ;
@@ -183,30 +198,30 @@ deferStmt
     ;
 
 ifStmt
-    : IF (simpleStmt SEMI)? expr block (ELSE (ifStmt | block))?
+    : IF (simpleStmt SEMI)? expr (block | DO stmt) (ELSE (ifStmt | block | DO stmt))?
     ;
 
 whenStmt
-    : WHEN expr block (ELSE (whenStmt | block))?
+    : WHEN expr (block | DO stmt) (ELSE (whenStmt | block | DO stmt))?
     ;
 
 forStmt
-    : FOR (forClause)? block
+    : FOR (forClause)? (block | DO stmt)
     ;
 
 forClause
     : simpleStmt SEMI expr SEMI simpleStmt
-    | IDENT (COMMA IDENT)? IN expr
+    | (identList)? (IN | NOT_IN) expr
     | expr
     ;
 
 switchStmt
-    : SWITCH (simpleStmt SEMI)? (expr | (IDENT IN expr))? LBRACE switchCase* RBRACE
+    : DIRECTIVE* SWITCH (simpleStmt SEMI)? (expr | ((identList)? (IN | NOT_IN) expr))? LBRACE switchCase* RBRACE
     ;
 
 switchCase
-    : CASE exprList COLON stmt*
-    | DEFAULT COLON stmt*
+    : CASE (exprList | typeList)? (COLON | DO) stmt*
+    | DEFAULT (COLON | DO)? stmt*
     ;
 
 assignStmt
@@ -233,14 +248,21 @@ exprStmt
 
 // Types
 type
-    : pointerType
-    | sliceType
-    | dynArrayType
-    | arrayType
-    | mapType
-    | procType
-    | distinctType
-    | qualifiedIdent
+    : DIRECTIVE* pointerType
+    | DIRECTIVE* sliceType
+    | DIRECTIVE* dynArrayType
+    | DIRECTIVE* arrayType
+    | DIRECTIVE* mapType
+    | DIRECTIVE* matrixType
+    | DIRECTIVE* procType
+    | DIRECTIVE* structDecl
+    | DIRECTIVE* unionDecl
+    | DIRECTIVE* enumDecl
+    | DIRECTIVE* bitSetDecl
+    | DIRECTIVE* distinctType
+    | DIRECTIVE* polyType
+    | DIRECTIVE* specializedType
+    | DIRECTIVE* qualifiedIdent
     ;
 
 pointerType
@@ -265,12 +287,24 @@ mapType
     : MAP LBRACK type RBRACK type
     ;
 
+matrixType
+    : MATRIX LBRACK expr COMMA expr RBRACK type
+    ;
+
 procType
     : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)?
     ;
 
 distinctType
     : DISTINCT type
+    ;
+
+polyType
+    : DOLLAR IDENT
+    ;
+
+specializedType
+    : qualifiedIdent LPAREN (typeList | exprList)? RPAREN
     ;
 
 qualifiedIdent
@@ -281,23 +315,30 @@ qualifiedIdent
 
 // Expressions
 expr
-    : expr QUESTION expr COLON expr                 # TernaryExpr
-    | expr (PIPE_PIPE | OR_RETURN | OR_BREAK) expr  # LogicalOrExpr
-    | expr AMP_AMP expr                            # LogicalAndExpr
-    | expr (EQ | NEQ | LT | LE | GT | GE | INSTANCEOF) expr     # RelationalExpr
-    | expr (PLUS | MINUS | PIPE | TILDE) expr       # AdditiveExpr
-    | expr (STAR | SLASH | PERCENT | LT_LT | GT_GT | AMP) expr # MultiplicativeExpr
-    | (PLUS | MINUS | EXCLAMATION | TILDE | CARET | AMP) expr  # UnaryExpr
-    | (CAST | TRANSMUTE) LPAREN type RPAREN expr   # CastExpr
-    | AUTO_CAST expr                               # AutoCastExpr
-    | expr LPAREN argumentList? RPAREN             # CallExpr
-    | expr LBRACK expr (ELLIPSIS expr?)? RBRACK    # IndexOrSliceExpr
-    | expr DOT IDENT                               # MemberAccessExpr
-    | expr CARET                                   # DerefExpr
-    | literal                                      # LiteralExpr
-    | qualifiedIdent                               # IdentifierExpr
-    | compoundLiteral                              # CompoundLitExpr
-    | LPAREN expr RPAREN                           # ParenExpr
+    : expr QUESTION expr COLON expr                               # TernaryExpr
+    | expr (OR_RETURN | OR_BREAK | OR_CONTINUE)                   # PostfixControlExpr
+    | expr PIPE_PIPE expr                                         # LogicalOrExpr
+    | expr AMP_AMP expr                                           # LogicalAndExpr
+    | expr (EQ | NEQ | LT | LE | GT | GE | INSTANCEOF) expr       # RelationalExpr
+    | expr (IN | NOT_IN) expr                                     # InExpr
+    | expr (RANGE_HALF_OPEN | RANGE_CLOSED | ELLIPSIS) expr       # RangeExpr
+    | expr (PLUS | MINUS | PIPE | TILDE) expr                     # AdditiveExpr
+    | expr (STAR | SLASH | PERCENT | LT_LT | GT_GT | AMP) expr    # MultiplicativeExpr
+    | (PLUS | MINUS | EXCLAMATION | TILDE | CARET | AMP) expr     # UnaryExpr
+    | (CAST | TRANSMUTE) LPAREN type RPAREN expr                  # CastExpr
+    | AUTO_CAST expr                                              # AutoCastExpr
+    | expr LPAREN argumentList? RPAREN                            # CallExpr
+    | expr LBRACK (expr | ELLIPSIS)? ((ELLIPSIS | RANGE_HALF_OPEN | RANGE_CLOSED) expr?)? (COMMA expr)* RBRACK # IndexOrSliceExpr
+    | expr DOT IDENT                                              # MemberAccessExpr
+    | expr CARET                                                  # DerefExpr
+    | DOT IDENT                                                   # ImplicitSelectorExpr
+    | DIRECTIVE (LPAREN argumentList? RPAREN)?                    # DirectiveExpr
+    | literal                                                     # LiteralExpr
+    | TYPEID                                                      # TypeidExpr
+    | DOLLAR IDENT                                                # PolyParamExpr
+    | qualifiedIdent                                              # IdentifierExpr
+    | compoundLiteral                                             # CompoundLitExpr
+    | LPAREN expr RPAREN                                          # ParenExpr
     ;
 
 argumentList
@@ -306,6 +347,7 @@ argumentList
 
 argument
     : (IDENT EQUAL)? expr
+    | DOT IDENT EQUAL expr
     ;
 
 compoundLiteral

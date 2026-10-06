@@ -1,4 +1,4 @@
-"""Singleton Pattern Detection Rule."""
+"""Singleton Pattern Detection Rule for Odin."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ from pattern_detector.domain.value_objects import Evidence, PatternType, SourceL
 
 
 class SingletonPatternRule(BasePatternRule):
-    """Detects Singleton Pattern instances in Clojure.
+    """Detects Singleton Pattern instances in Odin.
 
     Indicators:
-    - Use of `defonce` initializing a shared stateful container (atom, ref, agent, delay).
-    - Single shared global state instance in a namespace with dedicated accessor functions.
-    - Component system singletons (e.g. system map initialized once).
+    - Global pointer declaration (e.g. `instance: ^Config = nil`).
+    - Dedicated getter/initializer procedure (e.g. `get_instance`).
+    - Single shared instance lifecycle in package scope.
     """
 
     @property
@@ -31,29 +31,20 @@ class SingletonPatternRule(BasePatternRule):
             if state.is_once:
                 evidences.append(
                     self.evidence(
-                        description=f"Global singleton definition using 'defonce' for '{state.name}' ensuring single-instance lifecycle across reloads",
+                        description=f"Package-level singleton definition for '{state.name}' ensuring single-instance lifecycle",
                         weight=0.60,
                         location=state.location,
                         code_suffix="DEFONCE_DECLARATION",
                     )
                 )
 
-            if state.kind in ("atom", "ref", "agent"):
+            if state.kind in ("pointer", "atom", "ref", "agent"):
                 evidences.append(
                     self.evidence(
-                        description=f"Holds mutable stateful reference container ({state.kind}) for global singleton state",
+                        description=f"Holds stateful pointer container ({state.kind}) for global singleton state",
                         weight=0.35,
                         location=state.location,
                         code_suffix="STATEFUL_CONTAINER",
-                    )
-                )
-            elif state.kind in ("delay", "promise"):
-                evidences.append(
-                    self.evidence(
-                        description=f"Uses lazy single-evaluation construct ({state.kind}) to memoize singleton instance",
-                        weight=0.40,
-                        location=state.location,
-                        code_suffix="LAZY_SINGLETON",
                     )
                 )
 
@@ -62,7 +53,7 @@ class SingletonPatternRule(BasePatternRule):
             if ns:
                 accessors = [
                     f for f in ns.functions.values()
-                    if state.name in f.calls or f"@{state.name}" in f.body_text or f"deref {state.name}" in f.body_text
+                    if state.name in f.calls or state.name in f.body_text or f.name.lower().endswith("instance")
                 ]
                 if accessors:
                     evidences.append(
@@ -78,7 +69,7 @@ class SingletonPatternRule(BasePatternRule):
 
             # Check singleton naming hints
             name_lower = state.name.lower()
-            if any(hint in name_lower for hint in ("instance", "singleton", "registry", "cache", "pool", "app-state", "system")):
+            if any(hint in name_lower for hint in ("instance", "singleton", "app_state", "app_context")):
                 evidences.append(
                     self.evidence(
                         description=f"Name '{state.name}' suggests shared singleton entity",
@@ -88,7 +79,7 @@ class SingletonPatternRule(BasePatternRule):
                     )
                 )
 
-            if state.is_once or (state.kind in ("atom", "ref") and len(evidences) >= 2):
+            if state.is_once or (state.kind in ("pointer", "atom", "ref") and len(evidences) >= 2):
                 detections.append(
                     self.create_detection(
                         target_name=state.name,
@@ -96,7 +87,7 @@ class SingletonPatternRule(BasePatternRule):
                         evidences=evidences,
                         primary_location=state.location,
                         related_locations=related_locs,
-                        summary=f"Singleton pattern: global state container '{state.name}' initialized via {state.kind or 'def'}",
+                        summary=f"Singleton pattern: global state container '{state.name}' with managed lifecycle",
                         base_score=0.15 if state.is_once else 0.05,
                     )
                 )

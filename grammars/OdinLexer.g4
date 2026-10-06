@@ -8,7 +8,9 @@ STRUCT      : 'struct';
 UNION       : 'union';
 ENUM        : 'enum';
 BIT_SET     : 'bit_set';
+BIT_FIELD   : 'bit_field';
 MAP         : 'map';
+MATRIX      : 'matrix';
 DYNAMIC     : 'dynamic';
 PROC        : 'proc';
 RETURN      : 'return';
@@ -16,8 +18,11 @@ DEFER       : 'defer';
 IF          : 'if';
 ELSE        : 'else';
 WHEN        : 'when';
+WHERE       : 'where';
 FOR         : 'for';
+DO          : 'do';
 IN          : 'in';
+NOT_IN      : 'not_in';
 SWITCH      : 'switch';
 CASE        : 'case';
 DEFAULT     : 'default';
@@ -37,6 +42,7 @@ TYPEID      : 'typeid';
 RAWPTR      : 'rawptr';
 ANY         : 'any';
 NIL         : 'nil';
+ASM         : 'asm';
 INSTANCEOF  : 'instanceof';
 
 // Directives and Attributes
@@ -45,47 +51,49 @@ DIRECTIVE   : '#' [a-zA-Z_] [a-zA-Z0-9_]*;
 ATTRIBUTE   : '@' ( '(' (~[)\r\n])* ')' | [a-zA-Z_] [a-zA-Z0-9_]* );
 
 // Operators and Punctuation
-COLON_COLON : '::';
-COLON_EQUAL : ':=';
-ARROW       : '->';
-ELLIPSIS    : '..';
-DOT         : '.';
-COMMA       : ',';
-SEMI        : ';';
-COLON       : ':';
-QUESTION    : '?';
-CARET       : '^';
-DOLLAR      : '$';
-LPAREN      : '(';
-RPAREN      : ')';
-LBRACK      : '[';
-RBRACK      : ']';
-LBRACE      : '{';
-RBRACE      : '}';
-EQUAL       : '=';
-PLUS_EQUAL  : '+=';
-MINUS_EQUAL : '-=';
-STAR_EQUAL  : '*=';
-SLASH_EQUAL : '/=';
-PLUS        : '+';
-MINUS       : '-';
-STAR        : '*';
-SLASH       : '/';
-PERCENT     : '%';
-AMP_AMP     : '&&';
-PIPE_PIPE   : '||';
-AMP         : '&';
-PIPE        : '|';
-TILDE       : '~';
-EXCLAMATION : '!';
-LT_LT       : '<<';
-GT_GT       : '>>';
-LE          : '<=';
-GE          : '>=';
-EQ          : '==';
-NEQ         : '!=';
-LT          : '<';
-GT          : '>';
+COLON_COLON     : '::';
+COLON_EQUAL     : ':=';
+ARROW           : '->';
+RANGE_HALF_OPEN : '..<';
+RANGE_CLOSED    : '..=';
+ELLIPSIS        : '..';
+DOT             : '.';
+COMMA           : ',';
+SEMI            : ';';
+COLON           : ':';
+QUESTION        : '?';
+CARET           : '^';
+DOLLAR          : '$';
+LPAREN          : '(';
+RPAREN          : ')';
+LBRACK          : '[';
+RBRACK          : ']';
+LBRACE          : '{';
+RBRACE          : '}';
+EQUAL           : '=';
+PLUS_EQUAL      : '+=';
+MINUS_EQUAL     : '-=';
+STAR_EQUAL      : '*=';
+SLASH_EQUAL     : '/=';
+PLUS            : '+';
+MINUS           : '-';
+STAR            : '*';
+SLASH           : '/';
+PERCENT         : '%';
+AMP_AMP         : '&&';
+PIPE_PIPE       : '||';
+AMP             : '&';
+PIPE            : '|';
+TILDE           : '~';
+EXCLAMATION     : '!';
+LT_LT           : '<<';
+GT_GT           : '>>';
+LE              : '<=';
+GE              : '>=';
+EQ              : '==';
+NEQ             : '!=';
+LT              : '<';
+GT              : '>';
 
 // Literals
 FLOAT_LIT
@@ -137,6 +145,14 @@ BLOCK_COMMENT
 
 SHEBANG
     : '#!' ~[\r\n]* -> channel(HIDDEN)
+    ;
+
+LINE_CONTINUATION
+    : '\\' [\r\n]+ -> skip
+    ;
+
+BACKSLASH
+    : '\\'
     ;
 
 WS
