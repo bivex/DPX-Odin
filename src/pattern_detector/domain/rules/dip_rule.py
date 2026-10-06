@@ -113,4 +113,46 @@ class DependencyInversionRule(BasePatternRule):
                 detection.pattern_category = PatternCategory.PRINCIPLE
                 detections.append(detection)
 
+        # 3. Systems / Odin Idiom: Allocator Dependency Injection
+        for fn in model.all_functions():
+            if fn.is_test:
+                continue
+
+            doc = fn.docstring or ""
+            has_explicit_allocator = "explicit_allocator" in doc or any(
+                "allocator" in p.lower() for plist in fn.parameter_lists for p in plist
+            )
+            if has_explicit_allocator:
+                evidences = [
+                    self.evidence(
+                        description=(
+                            f"Procedure '{fn.name}' accepts explicit Allocator parameter, "
+                            "inverting the memory allocation dependency"
+                        ),
+                        weight=0.60,
+                        location=fn.location,
+                        code_suffix="DIP_ALLOCATOR_INJECTION",
+                    ),
+                    self.evidence(
+                        description=(
+                            "Allows the caller to inject memory allocation strategy (Arena, Temp, Pool) "
+                            "instead of hardcoding global heap allocation"
+                        ),
+                        weight=0.35,
+                        location=fn.location,
+                        code_suffix="DIP_INVERTED_MEMORY_CONTROL",
+                    ),
+                ]
+
+                detection = self.create_detection(
+                    target_name=fn.name,
+                    target_kind="dip_allocator_injection",
+                    evidences=evidences,
+                    primary_location=fn.location,
+                    summary=f"DIP Adherence: '{fn.name}' injects Allocator dependency",
+                    base_score=0.35,
+                )
+                detection.pattern_category = PatternCategory.PRINCIPLE
+                detections.append(detection)
+
         return detections

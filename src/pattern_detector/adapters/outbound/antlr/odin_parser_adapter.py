@@ -218,6 +218,16 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
             calls = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\(", p_body))
             instantiates = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\{", p_body))
 
+            return_types_str = p_ctx.returnTypes().getText() if p_ctx.returnTypes() else ""
+            raw_proc_text = self._get_text(p_ctx)
+            doc_meta: list[str] = []
+            if return_types_str:
+                doc_meta.append(f"returns:{return_types_str}")
+            if "#optional_ok" in raw_proc_text:
+                doc_meta.append("optional_ok")
+            if any("allocator" in p for p in param_names):
+                doc_meta.append("explicit_allocator")
+
             fn_model = FunctionModel(
                 name=const_name,
                 namespace=self.package_name,
@@ -226,7 +236,7 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                 body_text=p_body,
                 calls=sorted(calls),
                 instantiates_types=sorted(instantiates),
-                docstring="",
+                docstring=";".join(doc_meta),
                 is_private=False,
             )
             self.functions[const_name] = fn_model
@@ -312,6 +322,47 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                 methods=[],
                 is_type=True,
             )
+
+        # 6. Bit Set Declaration (e.g. Load_Texture_Options :: bit_set[Load_Texture_Option])
+        elif (
+            (hasattr(type_or_expr, "bitSetDecl") and type_or_expr.bitSetDecl())
+            or (type_or_expr.type_() and hasattr(type_or_expr.type_(), "bitSetDecl") and type_or_expr.type_().bitSetDecl())
+            or type_or_expr.getText().startswith("bit_set[")
+        ):
+            raw_text = type_or_expr.getText()
+            self.records[const_name] = RecordModel(
+                name=const_name,
+                namespace=self.package_name,
+                location=loc,
+                fields=[raw_text],
+                field_types={"bit_set": raw_text},
+                implemented_protocols=["bit_set"],
+                methods=[],
+                is_type=True,
+            )
+
+        # 7. Procedure Group (e.g. draw :: proc{draw_rect, draw_circle})
+        elif hasattr(type_or_expr, "procGroup") and type_or_expr.procGroup():
+            pg = type_or_expr.procGroup()
+            overloads: list[str] = []
+            if pg.exprList():
+                for exp in pg.exprList().expr():
+                    overloads.append(exp.getText())
+
+            fn_model = FunctionModel(
+                name=const_name,
+                namespace=self.package_name,
+                location=loc,
+                parameter_lists=[],
+                body_text=self._get_text(pg),
+                calls=overloads,
+                instantiates_types=[],
+                docstring="procedure_group",
+                is_private=False,
+                is_multimethod=True,
+                metadata={"overloads": ",".join(overloads)},
+            )
+            self.functions[const_name] = fn_model
 
         return self.visitChildren(ctx)
 

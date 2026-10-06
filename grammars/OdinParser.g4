@@ -106,7 +106,7 @@ bitSetDecl
     ;
 
 procDecl
-    : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)? (WHERE exprList)? procBody
+    : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)? DIRECTIVE* (WHERE exprList)? DIRECTIVE* procBody
     ;
 
 procGroup
@@ -293,7 +293,7 @@ matrixType
     ;
 
 procType
-    : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)?
+    : PROC callingConvention? LPAREN paramList? RPAREN (ARROW returnTypes)? DIRECTIVE*
     ;
 
 distinctType
@@ -329,8 +329,9 @@ expr
     | (CAST | TRANSMUTE) LPAREN type RPAREN expr                  # CastExpr
     | AUTO_CAST expr                                              # AutoCastExpr
     | expr LPAREN argumentList? RPAREN                            # CallExpr
-    | expr LBRACK (expr | ELLIPSIS)? ((ELLIPSIS | RANGE_HALF_OPEN | RANGE_CLOSED) expr?)? (COMMA expr)* RBRACK # IndexOrSliceExpr
+    | expr LBRACK (expr | ELLIPSIS)? ((ELLIPSIS | RANGE_HALF_OPEN | RANGE_CLOSED | COLON) expr?)? (COMMA expr)* RBRACK # IndexOrSliceExpr
     | expr DOT IDENT                                              # MemberAccessExpr
+    | expr DOT LPAREN type RPAREN                                 # TypeAssertExpr
     | expr CARET                                                  # DerefExpr
     | DOT IDENT                                                   # ImplicitSelectorExpr
     | DIRECTIVE (LPAREN argumentList? RPAREN)?                    # DirectiveExpr

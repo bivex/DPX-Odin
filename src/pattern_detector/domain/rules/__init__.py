@@ -3,6 +3,7 @@
 from pattern_detector.domain.rules.abstract_factory_rule import AbstractFactoryRule
 from pattern_detector.domain.rules.adapter_rule import AdapterPatternRule
 from pattern_detector.domain.rules.base import BasePatternRule, PatternRule
+from pattern_detector.domain.rules.bitmask_rule import TypeSafeBitmaskRule
 from pattern_detector.domain.rules.bridge_rule import BridgePatternRule
 from pattern_detector.domain.rules.builder_rule import BuilderPatternRule
 from pattern_detector.domain.rules.chain_of_responsibility_rule import ChainOfResponsibilityRule
@@ -28,8 +29,11 @@ from pattern_detector.domain.rules.mediator_rule import MediatorPatternRule
 from pattern_detector.domain.rules.memento_rule import MementoPatternRule
 from pattern_detector.domain.rules.observer_rule import ObserverPatternRule
 from pattern_detector.domain.rules.ocp_rule import OpenClosedPrincipleRule
+from pattern_detector.domain.rules.procedure_group_rule import ProcedureGroupRule
 from pattern_detector.domain.rules.prototype_rule import PrototypePatternRule
 from pattern_detector.domain.rules.proxy_rule import ProxyPatternRule
+from pattern_detector.domain.rules.result_tuple_rule import ResultTupleRule
+from pattern_detector.domain.rules.scope_guard_rule import ScopeGuardRule
 from pattern_detector.domain.rules.singleton_rule import SingletonPatternRule
 from pattern_detector.domain.rules.srp_rule import SingleResponsibilityRule
 from pattern_detector.domain.rules.state_rule import StatePatternRule
@@ -41,6 +45,11 @@ from pattern_detector.domain.rules.visitor_rule import VisitorPatternRule
 def get_default_rules() -> list[PatternRule]:
     """Return an instantiated list of all built-in pattern and principle detection rules."""
     return [
+        # Odin & Systems Idioms (4)
+        TypeSafeBitmaskRule(),
+        ScopeGuardRule(),
+        ResultTupleRule(),
+        ProcedureGroupRule(),
         # GoF Patterns (23) & Architecture (2)
         ObserverPatternRule(),
         StrategyPatternRule(),
@@ -111,13 +120,17 @@ __all__ = [
     "ObserverPatternRule",
     "OpenClosedPrincipleRule",
     "PatternRule",
+    "ProcedureGroupRule",
     "PrototypePatternRule",
     "ProxyPatternRule",
+    "ResultTupleRule",
+    "ScopeGuardRule",
     "SingleResponsibilityRule",
     "SingletonPatternRule",
     "StatePatternRule",
     "StrategyPatternRule",
     "TemplateMethodRule",
+    "TypeSafeBitmaskRule",
     "VisitorPatternRule",
     "get_default_rules",
 ]

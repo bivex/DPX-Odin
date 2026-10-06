@@ -67,6 +67,12 @@ class PatternType(str, Enum):
     KISS = "kiss"
     DRY = "dry"
 
+    # Odin & Systems Programming Idioms
+    TYPE_SAFE_BITMASK = "type_safe_bitmask"
+    SCOPE_GUARD = "scope_guard"
+    RESULT_TUPLE = "result_tuple"
+    PROCEDURE_GROUP = "procedure_group"
+
 
 class ConfidenceLevel(str, Enum):
     """Confidence grade based on score."""

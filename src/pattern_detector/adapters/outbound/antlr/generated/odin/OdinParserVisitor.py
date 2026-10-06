@@ -1,4 +1,4 @@
-# Generated from OdinParser.g4 by ANTLR 4.13.2
+# Generated from grammars/OdinParser.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .OdinParser import OdinParser
@@ -319,18 +319,13 @@ class OdinParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by OdinParser#ImplicitSelectorExpr.
-    def visitImplicitSelectorExpr(self, ctx:OdinParser.ImplicitSelectorExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by OdinParser#PostfixControlExpr.
-    def visitPostfixControlExpr(self, ctx:OdinParser.PostfixControlExprContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by OdinParser#DerefExpr.
     def visitDerefExpr(self, ctx:OdinParser.DerefExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#TypeAssertExpr.
+    def visitTypeAssertExpr(self, ctx:OdinParser.TypeAssertExprContext):
         return self.visitChildren(ctx)
 
 
@@ -339,33 +334,13 @@ class OdinParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by OdinParser#RangeExpr.
-    def visitRangeExpr(self, ctx:OdinParser.RangeExprContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by OdinParser#IndexOrSliceExpr.
     def visitIndexOrSliceExpr(self, ctx:OdinParser.IndexOrSliceExprContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by OdinParser#UnaryExpr.
-    def visitUnaryExpr(self, ctx:OdinParser.UnaryExprContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by OdinParser#LogicalAndExpr.
     def visitLogicalAndExpr(self, ctx:OdinParser.LogicalAndExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by OdinParser#DirectiveExpr.
-    def visitDirectiveExpr(self, ctx:OdinParser.DirectiveExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by OdinParser#LogicalOrExpr.
-    def visitLogicalOrExpr(self, ctx:OdinParser.LogicalOrExprContext):
         return self.visitChildren(ctx)
 
 
@@ -376,11 +351,6 @@ class OdinParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by OdinParser#TypeidExpr.
     def visitTypeidExpr(self, ctx:OdinParser.TypeidExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by OdinParser#AdditiveExpr.
-    def visitAdditiveExpr(self, ctx:OdinParser.AdditiveExprContext):
         return self.visitChildren(ctx)
 
 
@@ -419,6 +389,46 @@ class OdinParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by OdinParser#TernaryExpr.
+    def visitTernaryExpr(self, ctx:OdinParser.TernaryExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#ImplicitSelectorExpr.
+    def visitImplicitSelectorExpr(self, ctx:OdinParser.ImplicitSelectorExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#PostfixControlExpr.
+    def visitPostfixControlExpr(self, ctx:OdinParser.PostfixControlExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#RangeExpr.
+    def visitRangeExpr(self, ctx:OdinParser.RangeExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#UnaryExpr.
+    def visitUnaryExpr(self, ctx:OdinParser.UnaryExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#DirectiveExpr.
+    def visitDirectiveExpr(self, ctx:OdinParser.DirectiveExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#LogicalOrExpr.
+    def visitLogicalOrExpr(self, ctx:OdinParser.LogicalOrExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by OdinParser#AdditiveExpr.
+    def visitAdditiveExpr(self, ctx:OdinParser.AdditiveExprContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by OdinParser#ParenExpr.
     def visitParenExpr(self, ctx:OdinParser.ParenExprContext):
         return self.visitChildren(ctx)
@@ -426,11 +436,6 @@ class OdinParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by OdinParser#MemberAccessExpr.
     def visitMemberAccessExpr(self, ctx:OdinParser.MemberAccessExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by OdinParser#TernaryExpr.
-    def visitTernaryExpr(self, ctx:OdinParser.TernaryExprContext):
         return self.visitChildren(ctx)
 
 

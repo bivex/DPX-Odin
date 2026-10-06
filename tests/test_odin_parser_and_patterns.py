@@ -176,3 +176,78 @@ def test_odin_handle_proxy_and_flyweight_cache() -> None:
     assert PatternType.PROXY in detected_types
     assert PatternType.FLYWEIGHT in detected_types
 
+
+def test_odin_idioms_bitmask_and_procedure_group() -> None:
+    odin_code = """
+    package renderer
+
+    Render_Flag :: enum {
+        Wireframe,
+        Depth_Test,
+        Cull_Backface,
+    }
+
+    Render_Flags :: bit_set[Render_Flag]
+
+    draw_rect :: proc(x, y, w, h: int) {}
+    draw_circle :: proc(x, y, r: int) {}
+
+    draw :: proc{draw_rect, draw_circle}
+    """
+
+    adapter = OdinAntlrParserAdapter()
+    model = adapter.parse_sources({"render.odin": odin_code})
+    detector = PatternDetectorService(rules=get_default_rules())
+    report = detector.detect_all(model)
+
+    detected_types = {d.pattern_type for d in report.detections}
+    assert PatternType.TYPE_SAFE_BITMASK in detected_types
+    assert PatternType.PROCEDURE_GROUP in detected_types
+
+    bitmask_det = next(d for d in report.detections if d.pattern_type == PatternType.TYPE_SAFE_BITMASK)
+    assert bitmask_det.target_name == "Render_Flags"
+
+    procgroup_det = next(d for d in report.detections if d.pattern_type == PatternType.PROCEDURE_GROUP)
+    assert procgroup_det.target_name == "draw"
+
+
+def test_odin_idioms_scope_guard_result_tuple_and_allocator_dip() -> None:
+    odin_code = """
+    package assets
+
+    import "core:mem"
+
+    Texture :: struct {
+        id: u32,
+    }
+
+    load_texture :: proc(filename: string, allocator := context.allocator) -> (Texture, bool) #optional_ok {
+        buf := make([]u8, 1024, allocator)
+        defer delete(buf, allocator)
+
+        return Texture{id = 1}, true
+    }
+    """
+
+    adapter = OdinAntlrParserAdapter()
+    model = adapter.parse_sources({"assets.odin": odin_code})
+    detector = PatternDetectorService(rules=get_default_rules())
+    report = detector.detect_all(model)
+
+    detected_types = {d.pattern_type for d in report.detections}
+    assert PatternType.SCOPE_GUARD in detected_types
+    assert PatternType.RESULT_TUPLE in detected_types
+    assert PatternType.DEPENDENCY_INVERSION in detected_types
+
+    guard_det = next(d for d in report.detections if d.pattern_type == PatternType.SCOPE_GUARD)
+    assert guard_det.target_name == "load_texture"
+
+    tuple_det = next(d for d in report.detections if d.pattern_type == PatternType.RESULT_TUPLE)
+    assert tuple_det.target_name == "load_texture"
+
+    dip_det = next(
+        d for d in report.detections
+        if d.pattern_type == PatternType.DEPENDENCY_INVERSION and d.target_kind == "dip_allocator_injection"
+    )
+    assert dip_det.target_name == "load_texture"
+

@@ -13,6 +13,8 @@ dependencies = [
 
 [project.scripts]
 pattern-detector = "pattern_detector.adapters.inbound.cli.main:main"
+dpx = "pattern_detector.adapters.inbound.cli.main:main"
+dpx-odin = "pattern_detector.adapters.inbound.cli.main:main"
 
 [build-system]
 requires = ["hatchling"]
