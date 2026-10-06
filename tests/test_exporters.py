@@ -51,6 +51,9 @@ def test_html_report_formatter() -> None:
     assert "OBSERVER" in rendered
     assert "system-state" in rendered
     assert "WATCHED_STATE" in rendered
+    assert "copyLlmBtn" in rendered
+    assert "llmMarkdownSource" in rendered
+    assert "Copy for LLM (Markdown)" in rendered
 
 
 def test_markdown_report_formatter() -> None:

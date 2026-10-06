@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 
+from pattern_detector.adapters.outbound.persistence.markdown_report_formatter import MarkdownReportFormatter
 from pattern_detector.domain.detection import DetectionReport
 from pattern_detector.domain.value_objects import ConfidenceLevel, PatternCategory, PatternType
 from pattern_detector.ports.outbound import ReportFormatterPort
@@ -100,6 +101,8 @@ class HtmlReportFormatter(ReportFormatterPort):
         h_count = sum(1 for d in report.detections if d.level == ConfidenceLevel.HIGH)
         m_count = sum(1 for d in report.detections if d.level == ConfidenceLevel.MEDIUM)
         l_count = sum(1 for d in report.detections if d.level == ConfidenceLevel.LOW)
+
+        markdown_content = MarkdownReportFormatter().format(report, verbose=verbose)
 
         cards_html: list[str] = []
         for idx, det in enumerate(report.detections, 1):
@@ -203,8 +206,38 @@ class HtmlReportFormatter(ReportFormatterPort):
         body {{ background: var(--bg); color: var(--text); padding: 30px 20px; line-height: 1.5; }}
         .container {{ max-width: 1240px; margin: 0 auto; }}
         header {{ border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 25px; }}
+        .header-content {{ display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }}
         h1 {{ color: var(--heading); font-size: 26px; display: flex; align-items: center; gap: 10px; }}
         .subtitle {{ color: #94a3b8; font-size: 14px; margin-top: 5px; }}
+
+        .header-actions {{ display: flex; gap: 10px; align-items: center; }}
+        .btn-copy-llm {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15);
+            transition: all 0.2s ease-in-out;
+        }}
+        .btn-copy-llm:hover {{
+            background: #0284c7;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+            transform: translateY(-1px);
+        }}
+        .btn-copy-llm.copied {{
+            background: #059669 !important;
+            border-color: #10b981 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+        }}
         
         .kpi-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }}
         .kpi-card {{ background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }}
@@ -255,9 +288,24 @@ class HtmlReportFormatter(ReportFormatterPort):
 <body>
     <div class="container">
         <header>
-            <h1>🔍 Software Design Pattern Detection Report</h1>
-            <div class="subtitle">Hexagonal DDD Pattern Scanner • Project: <code>{html.escape(report.project_path or "Target Repository")}</code></div>
+            <div class="header-content">
+                <div>
+                    <h1>🔍 Software Design Pattern Detection Report</h1>
+                    <div class="subtitle">Hexagonal DDD Pattern Scanner • Project: <code>{html.escape(report.project_path or "Target Repository")}</code></div>
+                </div>
+                <div class="header-actions">
+                    <button id="copyLlmBtn" class="btn-copy-llm" onclick="copyMarkdownForLLM()" title="Copy entire structured Markdown report formatted for LLM prompts">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span>Copy for LLM (Markdown)</span>
+                    </button>
+                </div>
+            </div>
         </header>
+
+        <textarea id="llmMarkdownSource" style="display:none;" readonly aria-hidden="true">{html.escape(markdown_content)}</textarea>
 
         <div class="kpi-grid">
             <div class="kpi-card">
@@ -329,6 +377,46 @@ class HtmlReportFormatter(ReportFormatterPort):
                 filterCards();
             }});
         }});
+
+        function copyMarkdownForLLM() {{
+            const md = document.getElementById('llmMarkdownSource').value;
+            const btn = document.getElementById('copyLlmBtn');
+
+            function onSuccess() {{
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>✔ Copied for LLM!</span>
+                `;
+                btn.classList.add('copied');
+                setTimeout(() => {{
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('copied');
+                }}, 2200);
+            }}
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {{
+                navigator.clipboard.writeText(md).then(onSuccess).catch(() => fallbackCopy(md, onSuccess));
+            }} else {{
+                fallbackCopy(md, onSuccess);
+            }}
+        }}
+
+        function fallbackCopy(text, cb) {{
+            const ta = document.getElementById('llmMarkdownSource');
+            ta.style.display = 'block';
+            ta.select();
+            try {{
+                document.execCommand('copy');
+                cb();
+            }} catch (err) {{
+                alert('Failed to copy to clipboard.');
+            }} finally {{
+                ta.style.display = 'none';
+            }}
+        }}
     </script>
 </body>
 </html>
