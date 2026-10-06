@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
+import hashlib
+import os
+import pickle
 import re
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from pathlib import Path
 from typing import Any
 
 from antlr4 import CommonTokenStream, InputStream
@@ -482,21 +488,63 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                         self.records[v].implemented_protocols.append(proto_name)
 
 
+_CACHE_DIR = Path.home() / ".cache" / "dpx_odin" / "ast_cache_v1"
+
+
+def _get_cached_ast(file_path: str, source_code: str) -> NamespaceModel | None:
+    with contextlib.suppress(OSError, pickle.PickleError, AttributeError, ValueError):
+        content_hash = hashlib.sha256(source_code.encode("utf-8")).hexdigest()
+        cache_file = _CACHE_DIR / f"{content_hash}.pickle"
+        if cache_file.exists():
+            data = cache_file.read_bytes()
+            model: NamespaceModel = pickle.loads(data)
+            model.file_path = file_path
+            return model
+    return None
+
+
+def _put_cached_ast(source_code: str, model: NamespaceModel) -> None:
+    with contextlib.suppress(OSError, pickle.PickleError, AttributeError, ValueError):
+        content_hash = hashlib.sha256(source_code.encode("utf-8")).hexdigest()
+        _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        cache_file = _CACHE_DIR / f"{content_hash}.pickle"
+        cache_file.write_bytes(pickle.dumps(model, protocol=pickle.HIGHEST_PROTOCOL))
+
+
+
+def _parse_source_file_worker(item: tuple[str, str]) -> NamespaceModel:
+    file_path, source_code = item
+    cached = _get_cached_ast(file_path, source_code)
+    if cached is not None:
+        return cached
+
+    adapter = OdinAntlrParserAdapter()
+    result = adapter.parse_source(source_code, file_path=file_path)
+    _put_cached_ast(source_code, result)
+    return result
+
+
 class OdinAntlrParserAdapter(ParserPort):
     """Parses Odin source files using ANTLR4 Odin grammar into agnostic CodeModel."""
 
     def parse_source(self, source_code: str, file_path: str = "") -> NamespaceModel:
+        cached = _get_cached_ast(file_path, source_code)
+        if cached is not None:
+            return cached
+
         input_stream = InputStream(source_code)
         lexer = OdinLexer(input_stream)
+        lexer.removeErrorListeners()
         token_stream = CommonTokenStream(lexer)
         parser = OdinParser(token_stream)
+        parser.removeErrorListeners()
 
         tree = parser.compilationUnit()
         visitor = _OdinAstExtractionVisitor(file_path=file_path, source_code=source_code)
         visitor.visit(tree)
         visitor.finalize()
 
-        return NamespaceModel(
+        result = NamespaceModel(
             name=visitor.package_name,
             file_path=file_path,
             docstring="",
@@ -509,27 +557,41 @@ class OdinAntlrParserAdapter(ParserPort):
             states=visitor.states,
             watches=visitor.watches,
         )
+        _put_cached_ast(source_code, result)
+        return result
 
     def parse_sources(self, sources: dict[str, str], max_workers: int | None = None) -> CodeModel:
         model = CodeModel()
         if not sources:
             return model
 
-        if len(sources) > 3:
-            import os
-            from concurrent.futures import ThreadPoolExecutor
+        # 1. Fast path: check cache for each file
+        pending: list[tuple[str, str]] = []
+        for file_path, source_code in sources.items():
+            cached = _get_cached_ast(file_path, source_code)
+            if cached is not None:
+                model.add_namespace(cached)
+            else:
+                pending.append((file_path, source_code))
 
-            workers = max_workers or min(16, (os.cpu_count() or 4) * 2)
-            with ThreadPoolExecutor(max_workers=workers) as executor:
-                namespaces = list(
-                    executor.map(lambda item: self.parse_source(item[1], file_path=item[0]), sources.items())
-                )
+        # 2. Parallel parse remaining uncached files across all CPU cores
+        if pending:
+            if len(pending) > 2:
+                cpu_count = os.cpu_count() or 4
+                workers = max_workers or min(cpu_count, 16)
+                chunk = max(1, len(pending) // (workers * 2))
+                try:
+                    with ProcessPoolExecutor(max_workers=workers) as executor:
+                        namespaces = list(executor.map(_parse_source_file_worker, pending, chunksize=chunk))
+                except (OSError, RuntimeError):
+                    with ThreadPoolExecutor(max_workers=workers) as executor:
+                        namespaces = list(executor.map(_parse_source_file_worker, pending))
                 for ns in namespaces:
                     model.add_namespace(ns)
-        else:
-            for file_path, source_code in sources.items():
-                ns = self.parse_source(source_code, file_path=file_path)
-                model.add_namespace(ns)
+            else:
+                for file_path, source_code in pending:
+                    ns = self.parse_source(source_code, file_path=file_path)
+                    model.add_namespace(ns)
 
         self._link_cross_file_relationships(model)
         return model
