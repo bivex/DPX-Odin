@@ -5,7 +5,7 @@ options {
 }
 
 compilationUnit
-    : fileTag* packageDecl? importDecl* topLevelDecl* EOF
+    : fileTag* packageDecl? topLevelDecl* EOF
     ;
 
 fileTag
@@ -26,7 +26,8 @@ foreignImportBlock
     ;
 
 topLevelDecl
-    : constantDecl
+    : importDecl
+    | constantDecl
     | variableDecl
     | foreignBlock
     | whenStmt
@@ -346,8 +347,8 @@ argumentList
     ;
 
 argument
-    : (IDENT EQUAL)? expr
-    | DOT IDENT EQUAL expr
+    : (IDENT EQUAL)? (type | expr)
+    | DOT IDENT EQUAL (type | expr)
     ;
 
 compoundLiteral
