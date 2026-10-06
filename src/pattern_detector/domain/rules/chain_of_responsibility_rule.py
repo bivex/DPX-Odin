@@ -33,8 +33,7 @@ class ChainOfResponsibilityRule(BasePatternRule):
 
             # 1. Check for middleware calls in body
             middleware_calls = [
-                c for c in fn.calls
-                if c.startswith(("wrap-", "wrap_", "middleware-")) or "-middleware" in c
+                c for c in fn.calls if c.startswith(("wrap-", "wrap_", "middleware-")) or "-middleware" in c
             ]
 
             # 2. Check for threading macros and composition

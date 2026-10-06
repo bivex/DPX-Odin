@@ -28,7 +28,9 @@ class InterpreterPatternRule(BasePatternRule):
         for ns in model.namespaces.values():
             for mm_name, methods in ns.multimethods.items():
                 name_lower = mm_name.lower()
-                is_interp_named = any(k in name_lower for k in ("eval", "interpret", "evaluate", "exec-expr", "eval-ast"))
+                is_interp_named = any(
+                    k in name_lower for k in ("eval", "interpret", "evaluate", "exec-expr", "eval-ast")
+                )
 
                 if is_interp_named:
                     evidences: list[Evidence] = []

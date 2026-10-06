@@ -52,7 +52,8 @@ class SingletonPatternRule(BasePatternRule):
             ns = model.get_namespace(state.namespace)
             if ns:
                 accessors = [
-                    f for f in ns.functions.values()
+                    f
+                    for f in ns.functions.values()
                     if state.name in f.calls or state.name in f.body_text or f.name.lower().endswith("instance")
                 ]
                 if accessors:

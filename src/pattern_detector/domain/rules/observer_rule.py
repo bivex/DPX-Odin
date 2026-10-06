@@ -27,7 +27,9 @@ class ObserverPatternRule(BasePatternRule):
 
         # 1. State-centric detection (states that have watchers attached)
         for state in model.all_states():
-            state_watches = [w for w in model.all_watches() if w.target_state_name in (state.name, state.qualified_name)]
+            state_watches = [
+                w for w in model.all_watches() if w.target_state_name in (state.name, state.qualified_name)
+            ]
             if state_watches:
                 evidences: list[Evidence] = []
                 related_locs: list[SourceLocation] = []
@@ -106,7 +108,11 @@ class ObserverPatternRule(BasePatternRule):
         # 3. Callback functions with 4-parameter watch signature [k r o n]
         for fn in model.all_functions():
             if any(
-                len(params) == 4 and any("old" in p.lower() or "state" in p.lower() or "ref" in p.lower() or "key" in p.lower() for p in params)
+                len(params) == 4
+                and any(
+                    "old" in p.lower() or "state" in p.lower() or "ref" in p.lower() or "key" in p.lower()
+                    for p in params
+                )
                 for params in fn.parameter_lists
             ) and fn.name not in [d.target_name for d in detections]:
                 evidences = [

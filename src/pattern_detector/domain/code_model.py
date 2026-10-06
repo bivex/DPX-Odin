@@ -113,10 +113,7 @@ class RecordModel:
 
     @property
     def is_test(self) -> bool:
-        return (
-            self.location.is_test_location
-            or self.name.endswith(("Test", "Tests", "TestCase", "IT"))
-        )
+        return self.location.is_test_location or self.name.endswith(("Test", "Tests", "TestCase", "IT"))
 
     def implements_protocol(self, protocol_name: str) -> bool:
         norm = protocol_name.split("/")[-1]

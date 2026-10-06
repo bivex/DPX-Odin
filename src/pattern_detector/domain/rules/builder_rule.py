@@ -40,11 +40,16 @@ class BuilderPatternRule(BasePatternRule):
                     terminal_build_fns.append(fn)
 
                 # Check if it is a builder step function (e.g. with-*, set-*, add-*)
-                elif name_lower.startswith(("with-", "set-", "add-", "use-")) and not name_lower.startswith(("with-open", "with-lock", "with-transaction")):
+                elif name_lower.startswith(("with-", "set-", "add-", "use-")) and not name_lower.startswith(
+                    ("with-open", "with-lock", "with-transaction")
+                ):
                     # Check if body modifies map/record (assoc, update, merge)
                     has_assoc = any(k in fn.body_text for k in ("assoc", "update", "merge", "assoc-in", "update-in"))
                     params = [p.lower() for plist in fn.parameter_lists for p in plist]
-                    has_builder_param = any("builder" in p or "config" in p or "opts" in p or "ctx" in p or p in ("b", "c", "m", "this") for p in params)
+                    has_builder_param = any(
+                        "builder" in p or "config" in p or "opts" in p or "ctx" in p or p in ("b", "c", "m", "this")
+                        for p in params
+                    )
 
                     if has_assoc or has_builder_param:
                         step_fns.append(fn)

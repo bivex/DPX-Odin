@@ -41,7 +41,11 @@ class LifecycleComponentPatternRule(BasePatternRule):
         for proto in model.all_protocols():
             method_names = {m.name.lower() for m in proto.methods}
             matched_pair = next(
-                ((p_init, p_term) for p_init, p_term in LIFECYCLE_PAIRS if p_init in method_names and p_term in method_names),
+                (
+                    (p_init, p_term)
+                    for p_init, p_term in LIFECYCLE_PAIRS
+                    if p_init in method_names and p_term in method_names
+                ),
                 None,
             )
             if matched_pair or "lifecycle" in proto.name.lower():

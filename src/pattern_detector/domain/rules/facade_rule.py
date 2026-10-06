@@ -38,13 +38,26 @@ class FacadePatternRule(BasePatternRule):
                             subsystem_calls.setdefault(prefix, []).append(fn.name)
                     elif "." in call:
                         prefix = call.split(".")[0]
-                        if prefix != ns.name and prefix not in ("fmt", "log", "testing", "mem", "math", "strings", "runtime", "c"):
+                        if prefix != ns.name and prefix not in (
+                            "fmt",
+                            "log",
+                            "testing",
+                            "mem",
+                            "math",
+                            "strings",
+                            "runtime",
+                            "c",
+                        ):
                             subsystem_calls.setdefault(prefix, []).append(fn.name)
 
             file_base = ns.file_path.split("/")[-1].replace(".odin", "").replace(".clj", "")
-            is_root_api = file_base == ns.name or any(file_base.endswith(sfx) for sfx in ("api", "facade", "client", "engine"))
+            is_root_api = file_base == ns.name or any(
+                file_base.endswith(sfx) for sfx in ("api", "facade", "client", "engine")
+            )
 
-            if len(subsystem_calls) >= 2 or (len(subsystem_calls) >= 1 and (is_facade_named or is_root_api) and len(ns.functions) >= 2):
+            if len(subsystem_calls) >= 2 or (
+                len(subsystem_calls) >= 1 and (is_facade_named or is_root_api) and len(ns.functions) >= 2
+            ):
                 evidences: list[Evidence] = []
                 related_locs: list[SourceLocation] = []
 

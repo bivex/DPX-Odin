@@ -130,14 +130,16 @@ class HtmlReportFormatter(ReportFormatterPort):
                     f'<li class="evidence-item" style="border-left-color: {cat_style["accent"]};">'
                     f'<span class="weight-tag" style="color: {cat_style["text"]};">+{pct}%</span> '
                     f'<span class="rule-code">[{html.escape(ev.rule_code)}]</span> '
-                    f'{html.escape(ev.description)} {loc_str}'
+                    f"{html.escape(ev.description)} {loc_str}"
                     f"</li>"
                 )
 
             related_html = ""
             if det.related_locations:
                 rel_items = "".join(f"<li><code>{html.escape(str(loc))}</code></li>" for loc in det.related_locations)
-                related_html = f'<div class="related-locs"><strong>Related Locations:</strong><ul>{rel_items}</ul></div>'
+                related_html = (
+                    f'<div class="related-locs"><strong>Related Locations:</strong><ul>{rel_items}</ul></div>'
+                )
 
             cards_html.append(
                 f"""
@@ -176,9 +178,9 @@ class HtmlReportFormatter(ReportFormatterPort):
             if count > 0:
                 category_cards.append(
                     f"""
-                    <button class="cat-filter-btn" data-filter="{cat_enum.value}" style="border-color: {style['border']}; background: {style['bg']}; color: {style['text']};">
-                        <span class="cat-dot" style="background: {style['accent']};"></span>
-                        <strong>{style['name']}</strong>: {count}
+                    <button class="cat-filter-btn" data-filter="{cat_enum.value}" style="border-color: {style["border"]}; background: {style["bg"]}; color: {style["text"]};">
+                        <span class="cat-dot" style="background: {style["accent"]};"></span>
+                        <strong>{style["name"]}</strong>: {count}
                     </button>
                     """
                 )

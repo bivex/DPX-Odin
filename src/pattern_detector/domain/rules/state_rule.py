@@ -28,7 +28,9 @@ class StatePatternRule(BasePatternRule):
         for ns in model.namespaces.values():
             for mm_name, methods in ns.multimethods.items():
                 name_lower = mm_name.lower()
-                is_state_named = any(k in name_lower for k in ("transition", "fsm", "state-machine", "next-state", "step-state"))
+                is_state_named = any(
+                    k in name_lower for k in ("transition", "fsm", "state-machine", "next-state", "step-state")
+                )
 
                 if is_state_named or (methods and methods[0].dispatch_fn and "state" in methods[0].dispatch_fn.lower()):
                     evidences: list[Evidence] = []
@@ -76,7 +78,9 @@ class StatePatternRule(BasePatternRule):
             name_lower = fn.name.lower()
             if name_lower in ("transition", "next-state", "step-state", "process-state-transition"):
                 params = [p.lower() for plist in fn.parameter_lists for p in plist]
-                has_state_params = any("state" in p for p in params) and any("event" in p or "action" in p or "msg" in p for p in params)
+                has_state_params = any("state" in p for p in params) and any(
+                    "event" in p or "action" in p or "msg" in p for p in params
+                )
                 if has_state_params:
                     evidences = [
                         self.evidence(

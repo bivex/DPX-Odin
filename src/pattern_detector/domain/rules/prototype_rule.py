@@ -28,7 +28,9 @@ class PrototypePatternRule(BasePatternRule):
         for proto in model.all_protocols():
             name_lower = proto.name.lower()
             is_proto_named = any(k in name_lower for k in ("prototype", "cloneable", "copiable", "derive"))
-            clone_methods = [m for m in proto.methods if m.name.lower() in ("clone", "copy-with", "derive", "duplicate")]
+            clone_methods = [
+                m for m in proto.methods if m.name.lower() in ("clone", "copy-with", "derive", "duplicate")
+            ]
 
             if is_proto_named or clone_methods:
                 evidences = [
@@ -71,7 +73,9 @@ class PrototypePatternRule(BasePatternRule):
             name_lower = fn.name.lower()
             if name_lower.startswith(("clone-", "derive-", "copy-with-", "duplicate-")):
                 params = [p.lower() for plist in fn.parameter_lists for p in plist]
-                has_proto_param = any("proto" in p or "orig" in p or "base" in p or "template" in p or "inst" in p for p in params)
+                has_proto_param = any(
+                    "proto" in p or "orig" in p or "base" in p or "template" in p or "inst" in p for p in params
+                )
                 has_merge = any(k in fn.body_text for k in ("merge", "assoc", "update", "into"))
 
                 if has_proto_param or has_merge:

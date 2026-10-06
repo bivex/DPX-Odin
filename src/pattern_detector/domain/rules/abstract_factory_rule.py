@@ -28,7 +28,8 @@ class AbstractFactoryRule(BasePatternRule):
             is_factory_proto = "factory" in name_lower or "builder" in name_lower or "creator" in name_lower
 
             factory_methods = [
-                m for m in proto.methods
+                m
+                for m in proto.methods
                 if m.name.lower().startswith(("create-", "make-", "build-", "new-", "create", "make", "build", "new"))
             ]
 

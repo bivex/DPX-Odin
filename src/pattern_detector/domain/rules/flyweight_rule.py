@@ -72,20 +72,23 @@ class FlyweightPatternRule(BasePatternRule):
         # 3. Resource & Glyph Cache Flyweight (e.g. Font_Cache, Glyph_Cache, Texture_Pool)
         for rec in model.all_records():
             rec_name_lower = rec.name.lower()
-            is_cache_name = any(
-                k in rec_name_lower
-                for k in ("cache", "pool", "atlas", "interner")
-            )
+            is_cache_name = any(k in rec_name_lower for k in ("cache", "pool", "atlas", "interner"))
             if is_cache_name and not rec.is_test:
                 cache_methods = [
                     m.name
                     for m in rec.methods
-                    if any(v in m.name.lower() for v in ("get", "lookup", "find", "place", "cache", "load", "intern", "fetch"))
+                    if any(
+                        v in m.name.lower()
+                        for v in ("get", "lookup", "find", "place", "cache", "load", "intern", "fetch")
+                    )
                 ]
-                has_storage = any(
-                    any(t in f_type.lower() for t in ("map[", "[dynamic]", "handle", "^", "table"))
-                    for f_type in rec.field_types.values()
-                ) or len(rec.fields) >= 2
+                has_storage = (
+                    any(
+                        any(t in f_type.lower() for t in ("map[", "[dynamic]", "handle", "^", "table"))
+                        for f_type in rec.field_types.values()
+                    )
+                    or len(rec.fields) >= 2
+                )
 
                 if has_storage or cache_methods:
                     evidences = [

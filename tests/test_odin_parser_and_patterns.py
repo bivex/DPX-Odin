@@ -246,8 +246,8 @@ def test_odin_idioms_scope_guard_result_tuple_and_allocator_dip() -> None:
     assert tuple_det.target_name == "load_texture"
 
     dip_det = next(
-        d for d in report.detections
+        d
+        for d in report.detections
         if d.pattern_type == PatternType.DEPENDENCY_INVERSION and d.target_kind == "dip_allocator_injection"
     )
     assert dip_det.target_name == "load_texture"
-

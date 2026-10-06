@@ -29,7 +29,9 @@ class MediatorPatternRule(BasePatternRule):
             name_lower = proto.name.lower()
             methods_lower = [m.name.lower() for m in proto.methods]
             is_mediator_proto = any(k in name_lower for k in ("mediator", "bus", "broker", "dispatcher", "hub"))
-            has_pubsub_methods = any(m in ("publish", "subscribe", "broadcast", "dispatch", "emit") for m in methods_lower)
+            has_pubsub_methods = any(
+                m in ("publish", "subscribe", "broadcast", "dispatch", "emit") for m in methods_lower
+            )
 
             if is_mediator_proto or has_pubsub_methods:
                 evidences = [

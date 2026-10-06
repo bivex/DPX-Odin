@@ -25,7 +25,9 @@ class FactoryPatternRule(BasePatternRule):
         detections: list[Detection] = []
 
         all_record_names = {r.name for r in model.all_records()}
-        all_record_constructors = {f"->{r.name}" for r in model.all_records()} | {f"map->{r.name}" for r in model.all_records()}
+        all_record_constructors = {f"->{r.name}" for r in model.all_records()} | {
+            f"map->{r.name}" for r in model.all_records()
+        }
 
         for fn in model.all_functions():
             if fn.is_multimethod or fn.parent_multimethod:
@@ -35,7 +37,9 @@ class FactoryPatternRule(BasePatternRule):
             related_locs: list[SourceLocation] = []
 
             name_lower = fn.name.lower()
-            is_factory_name = name_lower.startswith(("make-", "make_", "create-", "create_", "new-", "build-", "construct-"))
+            is_factory_name = name_lower.startswith(
+                ("make-", "make_", "create-", "create_", "new-", "build-", "construct-")
+            )
 
             if is_factory_name:
                 evidences.append(
@@ -49,7 +53,8 @@ class FactoryPatternRule(BasePatternRule):
 
             # Check if it instantiates known records
             instantiated_records = [
-                rec for rec in all_record_names
+                rec
+                for rec in all_record_names
                 if f"->{rec}" in fn.calls or f"map->{rec}" in fn.calls or rec in fn.instantiates_types
             ]
 
@@ -68,7 +73,9 @@ class FactoryPatternRule(BasePatternRule):
                         related_locs.append(rec.location)
 
             # Check if it calls map-> or -> constructors
-            has_record_ctor_call = any(call in all_record_constructors or call.startswith(("->", "map->")) for call in fn.calls)
+            has_record_ctor_call = any(
+                call in all_record_constructors or call.startswith(("->", "map->")) for call in fn.calls
+            )
             if has_record_ctor_call and not instantiated_records:
                 evidences.append(
                     self.evidence(
@@ -79,7 +86,9 @@ class FactoryPatternRule(BasePatternRule):
                     )
                 )
 
-            if evidences and (len(evidences) >= 2 or (is_factory_name and (instantiated_records or has_record_ctor_call))):
+            if evidences and (
+                len(evidences) >= 2 or (is_factory_name and (instantiated_records or has_record_ctor_call))
+            ):
                 detections.append(
                     self.create_detection(
                         target_name=fn.name,

@@ -9,7 +9,7 @@ from pattern_detector.domain.detection import Detection
 from pattern_detector.domain.rules.base import BasePatternRule
 from pattern_detector.domain.value_objects import PatternCategory, PatternType
 
-_DEFER_PATTERN = re.compile(r"\bdefer\s+([a-zA-Z_][a-zA-Z0-9_\.]*(?:\s*\([^\)]*\))?|\{[^\}]*\})")
+_DEFER_PATTERN = re.compile(r"\bdefer\s+(?:(\{[\s\S]*?\})|([^\n;]+))")
 
 
 class ScopeGuardRule(BasePatternRule):
@@ -32,11 +32,17 @@ class ScopeGuardRule(BasePatternRule):
             if not fn.body_text or fn.is_test:
                 continue
 
-            defer_matches = _DEFER_PATTERN.findall(fn.body_text)
-            if not defer_matches:
+            cleaned_defers: list[str] = []
+            for m in _DEFER_PATTERN.finditer(fn.body_text):
+                block, expr = m.group(1), m.group(2)
+                if block:
+                    cleaned_defers.append("{...}")
+                elif expr:
+                    cleaned_defers.append(expr.strip())
+
+            if not cleaned_defers:
                 continue
 
-            cleaned_defers = [d.strip() for d in defer_matches]
             sample_defers = ", ".join(cleaned_defers[:3])
             if len(cleaned_defers) > 3:
                 sample_defers += f" (and {len(cleaned_defers) - 3} more)"

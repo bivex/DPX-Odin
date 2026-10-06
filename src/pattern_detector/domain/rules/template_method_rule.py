@@ -79,7 +79,9 @@ class TemplateMethodRule(BasePatternRule):
                     )
                 )
 
-            if (is_with_naming and (fn.is_macro or has_try_finally or has_hook_param)) or (has_try_finally and has_hook_param):
+            if (is_with_naming and (fn.is_macro or has_try_finally or has_hook_param)) or (
+                has_try_finally and has_hook_param
+            ):
                 detections.append(
                     self.create_detection(
                         target_name=fn.name,

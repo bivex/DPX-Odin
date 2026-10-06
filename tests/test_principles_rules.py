@@ -218,10 +218,12 @@ def test_dry_duplicate_code_violation() -> None:
         return base * 0.95
     }
     """
-    model = OdinAntlrParserAdapter().parse_sources({
-        "alpha_processor.odin": code_a,
-        "beta_processor.odin": code_b,
-    })
+    model = OdinAntlrParserAdapter().parse_sources(
+        {
+            "alpha_processor.odin": code_a,
+            "beta_processor.odin": code_b,
+        }
+    )
     detections = DryRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.DRY
@@ -238,13 +240,15 @@ def test_cohesion_coupling_high_fan_out() -> None:
 
     Global_Orchestrator :: struct {}
     """
-    model = OdinAntlrParserAdapter().parse_sources({
-        "global_orchestrator.odin": code_hub,
-        "mod1.odin": "package mod1\nMod1 :: struct {}",
-        "mod2.odin": "package mod2\nMod2 :: struct {}",
-        "mod3.odin": "package mod3\nMod3 :: struct {}",
-        "mod4.odin": "package mod4\nMod4 :: struct {}",
-    })
+    model = OdinAntlrParserAdapter().parse_sources(
+        {
+            "global_orchestrator.odin": code_hub,
+            "mod1.odin": "package mod1\nMod1 :: struct {}",
+            "mod2.odin": "package mod2\nMod2 :: struct {}",
+            "mod3.odin": "package mod3\nMod3 :: struct {}",
+            "mod4.odin": "package mod4\nMod4 :: struct {}",
+        }
+    )
     detections = CohesionCouplingRule().detect(model)
     assert len(detections) >= 1
     assert detections[0].pattern_type == PatternType.HIGH_COHESION_LOW_COUPLING

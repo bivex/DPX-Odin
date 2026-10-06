@@ -45,7 +45,9 @@ class DecoratorPatternRule(BasePatternRule):
                 if has_handler_param:
                     break
 
-            is_wrap_naming = fn.name.startswith("wrap-") or fn.name.startswith("wrap_") or "middleware" in fn.name.lower()
+            is_wrap_naming = (
+                fn.name.startswith("wrap-") or fn.name.startswith("wrap_") or "middleware" in fn.name.lower()
+            )
 
             if has_handler_param:
                 evidences.append(
@@ -99,7 +101,11 @@ class DecoratorPatternRule(BasePatternRule):
                 )
 
             # If evidence is sufficient to consider it a decorator/middleware
-            if evidences and (len(evidences) >= 2 or (fn.returns_closure and has_handler_param) or (is_wrap_naming and fn.returns_closure)):
+            if evidences and (
+                len(evidences) >= 2
+                or (fn.returns_closure and has_handler_param)
+                or (is_wrap_naming and fn.returns_closure)
+            ):
                 detections.append(
                     self.create_detection(
                         target_name=fn.name,

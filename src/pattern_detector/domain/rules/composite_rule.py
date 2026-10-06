@@ -37,10 +37,14 @@ class CompositePatternRule(BasePatternRule):
             for rec in rec_impls:
                 fields_lower = [f.lower() for f in rec.fields]
                 is_composite = any(
-                    k in f for f in fields_lower
+                    k in f
+                    for f in fields_lower
                     for k in ("children", "items", "components", "elements", "nodes", "members", "subs")
                 )
-                if is_composite or any(k in rec.name.lower() for k in ("composite", "group", "container", "panel", "tree", "compound", "sentence", "word")):
+                if is_composite or any(
+                    k in rec.name.lower()
+                    for k in ("composite", "group", "container", "panel", "tree", "compound", "sentence", "word")
+                ):
                     composite_recs.append(rec)
                 else:
                     leaf_recs.append(rec)

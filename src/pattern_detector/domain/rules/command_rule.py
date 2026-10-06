@@ -31,7 +31,10 @@ class CommandPatternRule(BasePatternRule):
                 related_locs: list[SourceLocation] = []
 
                 name_lower = mm_name.lower()
-                is_command_named = any(k in name_lower for k in ("command", "cmd", "event", "action", "msg", "message", "dispatch", "handle-"))
+                is_command_named = any(
+                    k in name_lower
+                    for k in ("command", "cmd", "event", "action", "msg", "message", "dispatch", "handle-")
+                )
 
                 if is_command_named:
                     evidences.append(
@@ -125,8 +128,7 @@ class CommandPatternRule(BasePatternRule):
                 continue
             name_lower = proto.name.lower()
             is_cmd_union = any(
-                k in name_lower
-                for k in ("event", "command", "cmd", "action", "msg", "message", "op", "operation")
+                k in name_lower for k in ("event", "command", "cmd", "action", "msg", "message", "op", "operation")
             )
             raw_vars = proto.metadata.get("variants", "")
             variants = [v.strip().lstrip("^[]") for v in raw_vars.split(",") if v.strip()]

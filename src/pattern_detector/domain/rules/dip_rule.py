@@ -52,7 +52,10 @@ class DependencyInversionRule(BasePatternRule):
                 news = _NEW_EXPR_RE.findall(body)
                 for cl in news:
                     # If instantiating a class ending in Repository, Service, Client, Database, Logger
-                    if any(cl.endswith(sfx) for sfx in ("Repository", "Service", "Client", "Database", "Dao", "Gateway", "Sender")):
+                    if any(
+                        cl.endswith(sfx)
+                        for sfx in ("Repository", "Service", "Client", "Database", "Dao", "Gateway", "Sender")
+                    ):
                         concrete_instantiations.append(cl)
 
             # 1. DIP Violation: Hardcoded concrete infrastructure dependencies
@@ -85,7 +88,9 @@ class DependencyInversionRule(BasePatternRule):
                 detections.append(detection)
 
             # 2. DIP Adherence: Clean dependency injection of abstractions
-            elif interface_deps and ("Service" in rec.name or "Manager" in rec.name or "Facade" in rec.name or "Controller" in rec.name):
+            elif interface_deps and (
+                "Service" in rec.name or "Manager" in rec.name or "Facade" in rec.name or "Controller" in rec.name
+            ):
                 unique_deps = sorted(set(interface_deps))
                 evidences = [
                     self.evidence(

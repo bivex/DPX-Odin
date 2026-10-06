@@ -219,11 +219,13 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
             instantiates = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\{", p_body))
 
             return_types_str = p_ctx.returnTypes().getText() if p_ctx.returnTypes() else ""
-            raw_proc_text = self._get_text(p_ctx)
             doc_meta: list[str] = []
             if return_types_str:
                 doc_meta.append(f"returns:{return_types_str}")
-            if "#optional_ok" in raw_proc_text:
+            proc_directives = (
+                [d.getText() for d in p_ctx.DIRECTIVE()] if hasattr(p_ctx, "DIRECTIVE") and p_ctx.DIRECTIVE() else []
+            )
+            if "#optional_ok" in proc_directives:
                 doc_meta.append("optional_ok")
             if any("allocator" in p for p in param_names):
                 doc_meta.append("explicit_allocator")
@@ -282,7 +284,9 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
         ) or (hasattr(type_or_expr, "compoundLiteral") and type_or_expr.compoundLiteral()):
             lit = (
                 type_or_expr.expr().compoundLiteral()
-                if type_or_expr.expr() and hasattr(type_or_expr.expr(), "compoundLiteral") and type_or_expr.expr().compoundLiteral()
+                if type_or_expr.expr()
+                and hasattr(type_or_expr.expr(), "compoundLiteral")
+                and type_or_expr.expr().compoundLiteral()
                 else type_or_expr.compoundLiteral()
             )
             if lit and lit.type_():
@@ -310,8 +314,16 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
                 )
 
         # 5. Distinct Type (e.g. Sound :: distinct Handle)
-        elif type_or_expr.type_() and hasattr(type_or_expr.type_(), "distinctType") and type_or_expr.type_().distinctType():
-            base_type = type_or_expr.type_().distinctType().type_().getText() if type_or_expr.type_().distinctType().type_() else ""
+        elif (
+            type_or_expr.type_()
+            and hasattr(type_or_expr.type_(), "distinctType")
+            and type_or_expr.type_().distinctType()
+        ):
+            base_type = (
+                type_or_expr.type_().distinctType().type_().getText()
+                if type_or_expr.type_().distinctType().type_()
+                else ""
+            )
             self.records[const_name] = RecordModel(
                 name=const_name,
                 namespace=self.package_name,
@@ -326,7 +338,11 @@ class _OdinAstExtractionVisitor(OdinParserVisitor):
         # 6. Bit Set Declaration (e.g. Load_Texture_Options :: bit_set[Load_Texture_Option])
         elif (
             (hasattr(type_or_expr, "bitSetDecl") and type_or_expr.bitSetDecl())
-            or (type_or_expr.type_() and hasattr(type_or_expr.type_(), "bitSetDecl") and type_or_expr.type_().bitSetDecl())
+            or (
+                type_or_expr.type_()
+                and hasattr(type_or_expr.type_(), "bitSetDecl")
+                and type_or_expr.type_().bitSetDecl()
+            )
             or type_or_expr.getText().startswith("bit_set[")
         ):
             raw_text = type_or_expr.getText()
@@ -515,4 +531,34 @@ class OdinAntlrParserAdapter(ParserPort):
                 ns = self.parse_source(source_code, file_path=file_path)
                 model.add_namespace(ns)
 
+        self._link_cross_file_relationships(model)
         return model
+
+    def _link_cross_file_relationships(self, model: CodeModel) -> None:
+        """Resolve relationships that span multiple files within the parsed codebase."""
+        all_recs = {rec.name: rec for rec in model.all_records()}
+        all_protos = {p.name: p for p in model.all_protocols()}
+
+        # 1. Associate receiver functions with structs defined in other files
+        for fn in model.all_functions():
+            for rec_name, rec in all_recs.items():
+                if fn in rec.methods:
+                    continue
+                if fn.name.lower().startswith(rec_name.lower() + "_"):
+                    rec.methods.append(fn)
+
+        # 2. Link compound literal procedure fields to rec.methods across files
+        for rec in all_recs.values():
+            for proc_name in rec.field_types.values():
+                for fn in model.all_functions():
+                    if fn.name == proc_name and fn not in rec.methods:
+                        rec.methods.append(fn)
+
+        # 3. Link union variants defined across files into rec.implemented_protocols
+        for proto_name, proto in all_protos.items():
+            if proto.metadata.get("is_union") == "true":
+                raw_vars = proto.metadata.get("variants", "")
+                variants = [v.strip().lstrip("^[]") for v in raw_vars.split(",") if v.strip()]
+                for v in variants:
+                    if v in all_recs and proto_name not in all_recs[v].implemented_protocols:
+                        all_recs[v].implemented_protocols.append(proto_name)

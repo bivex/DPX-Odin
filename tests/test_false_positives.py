@@ -130,10 +130,12 @@ def test_simple_record_getters_not_flagged_as_dry_duplicate_code() -> None:
         id: string,
     }
     """
-    report = _scan_snippet({
-        "user_entity.odin": code_a,
-        "product_entity.odin": code_b,
-    })
+    report = _scan_snippet(
+        {
+            "user_entity.odin": code_a,
+            "product_entity.odin": code_b,
+        }
+    )
     dry_detections = [d for d in report.detections if d.pattern_type == PatternType.DRY]
     assert len(dry_detections) == 0
 
@@ -154,8 +156,10 @@ def test_string_helpers_with_make_or_create_name_not_flagged_as_factory() -> Non
     """
     report = _scan_snippet({"string_helpers.odin": code})
     factory_detections = [
-        d for d in report.detections
-        if d.pattern_type == PatternType.FACTORY_METHOD and d.confidence.level in (ConfidenceLevel.HIGH, ConfidenceLevel.VERY_HIGH)
+        d
+        for d in report.detections
+        if d.pattern_type == PatternType.FACTORY_METHOD
+        and d.confidence.level in (ConfidenceLevel.HIGH, ConfidenceLevel.VERY_HIGH)
     ]
     assert len(factory_detections) == 0
 
@@ -288,3 +292,73 @@ def test_package_with_normal_imports_and_tests_not_flagged_as_tight_coupling() -
     report = _scan_snippet({"tests/session_test.odin": code})
     coupling_detections = [d for d in report.detections if d.pattern_type == PatternType.HIGH_COHESION_LOW_COUPLING]
     assert len(coupling_detections) == 0
+
+
+def test_js_evaluation_string_not_flagged_as_law_of_demeter() -> None:
+    code = """
+    package platform
+
+    Platform :: struct {}
+
+    platform_lock_cursor :: proc() {
+        js.evaluate("document.getElementById('canvas').requestPointerLock().catch(e => console.error(e))")
+    }
+    """
+    report = _scan_snippet({"platform_web.odin": code})
+    lod_detections = [d for d in report.detections if d.pattern_type == PatternType.LAW_OF_DEMETER]
+    assert len(lod_detections) == 0
+
+
+def test_graphics_backend_not_flagged_as_srp_god_object() -> None:
+    code = """
+    package render
+
+    Render_Backend_GL :: struct {
+        handle: u32,
+    }
+
+    render_backend_gl_update_texture :: proc(self: ^Render_Backend_GL) {
+    }
+
+    render_backend_gl_delete_shader :: proc(self: ^Render_Backend_GL) {
+    }
+
+    render_backend_gl_get_handle :: proc(self: ^Render_Backend_GL) -> u32 {
+        return self.handle
+    }
+    """
+    report = _scan_snippet({"render_backend.odin": code})
+    srp_detections = [d for d in report.detections if d.pattern_type == PatternType.SINGLE_RESPONSIBILITY]
+    assert len(srp_detections) == 0
+
+
+def test_optional_ok_in_string_literal_does_not_trigger_optional_ok() -> None:
+    code = """
+    package parser
+
+    parse_token :: proc() -> string {
+        log_msg := "Found #optional_ok directive in code"
+        return log_msg
+    }
+    """
+    report = _scan_snippet({"parser.odin": code})
+    res_detections = [d for d in report.detections if d.pattern_type == PatternType.RESULT_TUPLE]
+    assert len(res_detections) == 0
+
+
+def test_scope_guard_with_block_defer_syntax() -> None:
+    code = """
+    package io
+
+    read_file :: proc() {
+        f := open("test.txt")
+        defer {
+            close(f)
+            log("closed")
+        }
+    }
+    """
+    report = _scan_snippet({"file_io.odin": code})
+    scope_detections = [d for d in report.detections if d.pattern_type == PatternType.SCOPE_GUARD]
+    assert len(scope_detections) == 1
+    assert "defer" in scope_detections[0].summary

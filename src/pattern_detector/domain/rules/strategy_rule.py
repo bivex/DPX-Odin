@@ -73,24 +73,88 @@ class StrategyPatternRule(BasePatternRule):
 
         # 2. Strategy via Protocols with multiple implementing records
         excluded_pattern_suffixes = (
-            "Factory", "Builder", "Creator", "Producer", "Observer", "Listener",
-            "Subscriber", "Watcher", "Visitor", "Element", "State", "Iterator", "Iterable"
+            "Factory",
+            "Builder",
+            "Creator",
+            "Producer",
+            "Observer",
+            "Listener",
+            "Subscriber",
+            "Watcher",
+            "Visitor",
+            "Element",
+            "State",
+            "Iterator",
+            "Iterable",
         )
 
         strategy_name_suffixes = (
-            "Strategy", "Policy", "Algorithm", "Behavior", "Action", "Rule",
-            "Processor", "Callback", "Calculator", "Operation", "Formatter",
-            "Validator", "Converter", "Matcher", "Parser", "Comparator",
-            "Predicate", "Function", "Handler", "Filter", "Mapper", "Generator", "Driver",
-            "Interface", "Backend", "Glue", "Provider", "VTable", "Engine"
+            "Strategy",
+            "Policy",
+            "Algorithm",
+            "Behavior",
+            "Action",
+            "Rule",
+            "Processor",
+            "Callback",
+            "Calculator",
+            "Operation",
+            "Formatter",
+            "Validator",
+            "Converter",
+            "Matcher",
+            "Parser",
+            "Comparator",
+            "Predicate",
+            "Function",
+            "Handler",
+            "Filter",
+            "Mapper",
+            "Generator",
+            "Driver",
+            "Interface",
+            "Backend",
+            "Glue",
+            "Provider",
+            "VTable",
+            "Engine",
         )
 
         strategy_method_verbs = (
-            "sort", "pay", "execute", "calculate", "apply", "filter", "validate",
-            "format", "compress", "route", "process", "slay", "authenticate",
-            "handle", "run", "doaction", "match", "transform", "print", "export",
-            "render", "compute", "search", "dispatch", "evaluate", "perform",
-            "init", "shutdown", "update", "draw", "push", "poll", "read", "write"
+            "sort",
+            "pay",
+            "execute",
+            "calculate",
+            "apply",
+            "filter",
+            "validate",
+            "format",
+            "compress",
+            "route",
+            "process",
+            "slay",
+            "authenticate",
+            "handle",
+            "run",
+            "doaction",
+            "match",
+            "transform",
+            "print",
+            "export",
+            "render",
+            "compute",
+            "search",
+            "dispatch",
+            "evaluate",
+            "perform",
+            "init",
+            "shutdown",
+            "update",
+            "draw",
+            "push",
+            "poll",
+            "read",
+            "write",
         )
 
         for proto in model.all_protocols():
@@ -103,13 +167,20 @@ class StrategyPatternRule(BasePatternRule):
 
             # Check method names for factory / observer / visitor methods
             method_names_lower = [m.name.lower() for m in proto.methods]
-            if any(m.startswith(("create", "build", "make", "new", "produce", "manufacture")) for m in method_names_lower):
+            if any(
+                m.startswith(("create", "build", "make", "new", "produce", "manufacture")) for m in method_names_lower
+            ):
                 continue
-            if any(m in ("update", "onevent", "notify", "observe", "visit", "accept", "hasnext") for m in method_names_lower):
+            if any(
+                m in ("update", "onevent", "notify", "observe", "visit", "accept", "hasnext")
+                for m in method_names_lower
+            ):
                 continue
 
             implementing_records = model.find_records_implementing(proto.name)
-            extensions = [ext for ext in model.all_extensions() if ext.protocol_name in (proto.name, proto.qualified_name)]
+            extensions = [
+                ext for ext in model.all_extensions() if ext.protocol_name in (proto.name, proto.qualified_name)
+            ]
 
             total_implementations = len(implementing_records) + len(extensions)
             if total_implementations < 2:
@@ -131,8 +202,7 @@ class StrategyPatternRule(BasePatternRule):
             # Check if interface or methods align with strategy semantics
             is_strategy_named = any(proto.name.endswith(sfx) for sfx in strategy_name_suffixes)
             has_strategy_method = any(
-                any(verb in m_name for verb in strategy_method_verbs)
-                for m_name in method_names_lower
+                any(verb in m_name for verb in strategy_method_verbs) for m_name in method_names_lower
             )
 
             # Accept if strategy naming / method verbs match or if it is a focused functional contract (1-2 methods)

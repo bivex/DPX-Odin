@@ -25,11 +25,11 @@ class SingleResponsibilityRule(BasePatternRule):
         detections: list[Detection] = []
 
         concern_keywords = {
-            "persistence": ("save", "find", "delete", "query", "insert", "update", "repository", "dao", "db"),
-            "http_web": ("handle", "request", "response", "get", "post", "endpoint", "controller", "route"),
-            "serialization": ("json", "xml", "serialize", "deserialize", "parse", "format"),
-            "auth_security": ("authenticate", "authorize", "token", "password", "crypto", "hash", "session"),
-            "business_logic": ("calculate", "compute", "process", "validate", "execute", "apply"),
+            "persistence": ("database", "repository", "dao", "sql", "persist", "query_db"),
+            "http_web": ("http", "endpoint", "controller", "servlet", "webhook", "rest_api"),
+            "serialization": ("json", "xml", "yaml", "serialize", "deserialize"),
+            "auth_security": ("authenticate", "authorize", "token", "password", "crypto", "oauth", "jwt"),
+            "business_logic": ("calculate", "compute", "process", "validate", "discount", "tax"),
         }
 
         for rec in model.all_records():
@@ -38,7 +38,8 @@ class SingleResponsibilityRule(BasePatternRule):
 
             # Exclude plain getters, setters, equals, hashCode, toString
             business_methods = [
-                m for m in rec.methods
+                m
+                for m in rec.methods
                 if not m.name.split(".")[-1].startswith(("get", "set", "is", "has"))
                 and m.name.split(".")[-1] not in ("equals", "hashcode", "tostring")
             ]

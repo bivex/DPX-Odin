@@ -34,12 +34,16 @@ class MementoPatternRule(BasePatternRule):
                 if fn.location.is_test_location:
                     continue
                 name_lower = fn.name.lower()
-                is_memento_kw = any(k in name_lower for k in ("snapshot", "memento", "checkpoint", "save-state", "restore-state"))
+                is_memento_kw = any(
+                    k in name_lower for k in ("snapshot", "memento", "checkpoint", "save-state", "restore-state")
+                )
                 is_undo_redo_with_type = has_memento_type and any(k in name_lower for k in ("undo", "redo"))
                 if is_memento_kw or is_undo_redo_with_type:
                     memento_fns.append(fn)
 
-            if len(memento_fns) >= 2 or any("memento" in f.name.lower() or "snapshot" in f.name.lower() for f in memento_fns):
+            if len(memento_fns) >= 2 or any(
+                "memento" in f.name.lower() or "snapshot" in f.name.lower() for f in memento_fns
+            ):
                 evidences: list[Evidence] = []
                 related_locs: list[SourceLocation] = []
 

@@ -52,11 +52,17 @@ class Container:
         self.report_formatter: ReportFormatterPort = report_formatter or ConsoleReportFormatter()
 
         self.json_repository: ResultRepositoryPort = json_repository or JsonResultRepository()
-        self.html_repository: ResultRepositoryPort = html_repository or HtmlResultRepository(formatter=self.html_formatter)  # type: ignore[arg-type]
-        self.markdown_repository: ResultRepositoryPort = markdown_repository or MarkdownResultRepository(formatter=self.markdown_formatter)  # type: ignore[arg-type]
+        self.html_repository: ResultRepositoryPort = html_repository or HtmlResultRepository(
+            formatter=self.html_formatter
+        )
+        self.markdown_repository: ResultRepositoryPort = markdown_repository or MarkdownResultRepository(
+            formatter=self.markdown_formatter
+        )
 
         # Domain Service & Rules
-        self.detector_service: PatternDetectorService = detector_service or PatternDetectorService(rules=get_default_rules())
+        self.detector_service: PatternDetectorService = detector_service or PatternDetectorService(
+            rules=get_default_rules()
+        )
 
         # Application Service (Inbound Port implementation)
         self.scanning_service: ScanningService = ScanningService(

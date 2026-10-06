@@ -38,15 +38,19 @@ class ResultTupleRule(BasePatternRule):
                 continue
 
             doc = fn.docstring or ""
+            returns_match = re.search(r"returns:([^\;]+)", doc)
+            returns_snippet = returns_match.group(1).strip() if returns_match else ""
+
+            # A result tuple must return multiple values in parentheses
+            is_tuple = returns_snippet.startswith("(") and returns_snippet.endswith(")") and "," in returns_snippet
+            if not is_tuple:
+                continue
+
             has_optional_ok = "optional_ok" in doc
             has_result_tuple = bool(_RESULT_TUPLE_RETURNS_RE.search(doc))
 
             if not (has_optional_ok or has_result_tuple):
                 continue
-
-            # Extract return type signature snippet for clear reporting
-            returns_match = re.search(r"returns:([^\;]+)", doc)
-            returns_snippet = returns_match.group(1) if returns_match else "multiple values"
 
             evidences = [
                 self.evidence(

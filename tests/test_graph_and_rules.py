@@ -26,10 +26,12 @@ def test_circular_dependency_detection_odin() -> None:
     """
 
     adapter = OdinAntlrParserAdapter()
-    model = adapter.parse_sources({
-        "alpha.odin": code_a,
-        "beta.odin": code_b,
-    })
+    model = adapter.parse_sources(
+        {
+            "alpha.odin": code_a,
+            "beta.odin": code_b,
+        }
+    )
 
     cycles = model.find_circular_dependencies()
     assert len(cycles) == 1

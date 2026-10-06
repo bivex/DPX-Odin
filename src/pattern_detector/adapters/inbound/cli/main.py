@@ -101,11 +101,17 @@ def scan(
     container.report_formatter.render_to_console(report, console, verbose=verbose)  # type: ignore[attr-defined]
 
     if json_output:
-        console.print(f"[bold green]✔[/bold green] Full JSON detection report exported to: [underline]{json_output}[/underline]")
+        console.print(
+            f"[bold green]✔[/bold green] Full JSON detection report exported to: [underline]{json_output}[/underline]"
+        )
     if html_output:
-        console.print(f"[bold green]✔[/bold green] Interactive HTML dashboard exported to: [underline]{html_output}[/underline]")
+        console.print(
+            f"[bold green]✔[/bold green] Interactive HTML dashboard exported to: [underline]{html_output}[/underline]"
+        )
     if markdown_output:
-        console.print(f"[bold green]✔[/bold green] Markdown report exported to: [underline]{markdown_output}[/underline]")
+        console.print(
+            f"[bold green]✔[/bold green] Markdown report exported to: [underline]{markdown_output}[/underline]"
+        )
     if json_output or html_output or markdown_output:
         console.print()
 

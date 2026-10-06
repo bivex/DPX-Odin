@@ -25,7 +25,8 @@ class BridgePatternRule(BasePatternRule):
         detections: list[Detection] = []
 
         driver_protos = [
-            p for p in model.all_protocols()
+            p
+            for p in model.all_protocols()
             if any(k in p.name.lower() for k in ("driver", "backend", "engine", "platform", "provider", "codec"))
         ]
 
@@ -33,7 +34,8 @@ class BridgePatternRule(BasePatternRule):
             # Look for abstraction records that hold an implementation driver
             for rec in model.all_records():
                 has_driver_field = any(
-                    k in f.lower() for f in rec.fields
+                    k in f.lower()
+                    for f in rec.fields
                     for k in ("driver", "backend", "engine", "impl", "adapter", "provider")
                 )
                 if has_driver_field:
